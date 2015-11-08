@@ -1,7 +1,7 @@
 {
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwJqfeDS0BeA1jhtYfny/63wDyQ165rbVSnEP9f6bp0K1j0MP195AbsHYyvn64YFWe2iEPTlYB+OhKbWT/sPk2bElLw8ImqASyt1ehgj+CmcgO0Xbm4hM2vtPH1C87CHK3c3lRQVPQwuGYKZK+PcT6Zrwju1qlamXsnQN2KJrxDeVF3X2Pbjc2HV5S09txbuVApH9T20/fQ0kswlbw3Hx9s0nRllVa2nc8GnzGgN4OfVmBaei5YfwGNV451jYjq6yrc+AZ3shacsQI3KiTxZPqOGv1XrXR3o8+ZqBAU7GWEzslFKoVd9r+EPo5QYlapNJaoHJ+fv/yhlL/63v1dC6fwIDAQAB",
   "manifest_version": 2,
-  "name": "LeekSentry",
+  "name": "LeakSentry",
   "description": "This extension controls the leakage of PII.",
   "version": "0.0.1",
   "content_security_policy": "script-src 'self' https://cdn.firebase.com https://*.firebaseio.com; object-src 'self'",
