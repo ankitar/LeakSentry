@@ -1,0 +1,52 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+  <head>
+    <title>LeekSentry</title>
+    <style>
+            body { 
+                min-width: 420px; 
+                overflow-x: hidden; 
+                font-family: Arial, sans-serif; 
+                font-size: 12px; 
+            }
+            input, textarea { 
+                width: 420px; 
+            }
+            input#save { 
+                font-weight: bold; width: auto; 
+            }
+    </style>
+    <script src="popup.js"></script>
+    <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
+        <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+     -->
+  </head>
+  <body>
+    <h1>User Information</h1>
+    <form id="userInfo">
+      First Name: <br>
+      <input type="text" name="firstname"> <br>
+      Last Name: <br>
+      <input type="text" name="lastname"> <br>
+      Year of Birth: <br>
+      <select id="year"></select> <br>
+      Email Id: <br>
+      <input type="email" name="email"> <br>
+      Phone Number: <br>
+      <input type="tel" name="telephone"> <br>
+      <p>
+        <input id="save" type="submit" value="Save Details" onclick="submitDetails()" />
+      </p>
+    </form>
+  </body>
+</html>
+
