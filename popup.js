@@ -4,8 +4,9 @@ function submitDetails(){
     var lastname = document.getElementById("lastname");
     var year = document.getElementById("year");
     var email = document.getElementById("email");
+    var address = document.getElementById("address");
     var telephone = document.getElementById("telephone");
-    dataRef.set({firstname:firstname, lastname:lastname, year:year, email:email, telephone:telephone});
+    dataRef.set({firstname:firstname, lastname:lastname, year:year, email:email, address:address, telephone:telephone});
 }
 window.addEventListener('load', function(evt) {
     var start = 1900;
