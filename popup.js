@@ -1,5 +1,5 @@
 function submitDetails(){
-    var dataRef = new Firebase('https://leeksentry.firebaseio.com/');
+    var dataRef = new Firebase('https://leaksentry.firebaseio.com/');
     var firstname = document.getElementById("firstname");
     var lastname = document.getElementById("lastname");
     var year = document.getElementById("year");
