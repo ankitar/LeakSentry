@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!--
  This page is shown when the extension button is clicked, because the
  "browser_action" field in manifest.json contains the "default_popup" key with
@@ -6,49 +6,43 @@
  -->
 <html>
   <head>
-    <title>LeekSentry</title>
-    <style>
-            body { 
-                min-width: 420px; 
-                overflow-x: hidden; 
-                font-family: Arial, sans-serif; 
-                font-size: 12px; 
-            }
-            input, textarea { 
-                width: 420px; 
-            }
-            input#save { 
-                font-weight: bold; width: auto; 
-            }
-    </style>
-    <script src="popup.js"></script>
-    <script src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'></script>
-        <!--
+    <link rel = "stylesheet" type = "text/css" href = "popup.css" />
+    <script src='firebase.js'></script>
+    <script src='jquery-1.8.3.min.js'></script>
+    <script src='popup.js'></script>
+    <title>Getting Started Extension's Popup</title>
+    <!--
       - JavaScript and HTML must be in separate files: see our Content Security
       - Policy documentation[1] for details and explanation.
       -
       - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
      -->
+    <!-- <script src="popup.js"></script> -->
   </head>
   <body>
-    <h1>User Information</h1>
-    <form id="userInfo">
-      First Name: <br>
-      <input type="text" name="firstname"> <br>
-      Last Name: <br>
-      <input type="text" name="lastname"> <br>
-      Year of Birth: <br>
-      <select id="year"></select> <br>
-      Email Id: <br>
-      <input type="email" name="email"> <br>
-      Mailing Address: <br>
-      <input type="text" name="address"> <br>
-      Phone Number: <br>
-      <input type="tel" name="telephone"> <br>
-      <p>
-        <input id="save" type="submit" value="Save Details" onclick="submitDetails()" />
-      </p>
-    </form>
+    <div class = "form-wrapper" >
+      <form class = "user-info-form" id = "user-info-form">
+        <label class = "user-info" for = "first-name">First Name</label>
+        <input type = "text" name = "firstname" id = "firstname" required placeholder = "Enter first name" title = "firstname" />
+        
+        <label class = "user-info" for = "last-name">Last Name</label>
+        <input type = "text" name = "lastname" id = "lastname" required placeholder = "Enter last name" />
+        
+        <label class = "user-info" for = "birth-year">Year of Birth</label>
+        <input type = "text" name = "birth-year" id = "year" required placeholder = "Enter year of birth" />
+        
+        <label class = "user-info" for = "email">Email</label>
+        <input type = "email" name = "email" id = "email" required placeholder = "Enter a valid email address" />
+        
+        <label class = "user-info" for = "physical-address">Address</label>
+        <input type = "text" name = "address" id = "address" required placeholder = "Enter physical address" />
+        
+        <label class = "user-info" for = "phone-no">Phone Number</label>
+        <input type = "tel" name = "phone" id = "telephone" required placeholder = "Enter phone number" />
+
+        <input type = 'submit' value = 'submit' class = 'submit-btn' id = 'save'/>
+      </form>
+    </div>
   </body>
 </html>
 
