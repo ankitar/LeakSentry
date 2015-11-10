@@ -12,6 +12,7 @@ function submitDetails(){
     var telephone = $("#telephone").val();
 
     dataRef.push({address:address, email:email, firstname: firstname, lastname:lastname, telephone:telephone, year:year});
+    alert("hi");
 }
 
 window.addEventListener('load', function(evt) {
@@ -24,6 +25,5 @@ window.addEventListener('load', function(evt) {
     //   option.text = option.value = year;
     //   select.add(option, 0);
     // }
-
     document.getElementById('user-info-form').addEventListener('submit', submitDetails);
 });
