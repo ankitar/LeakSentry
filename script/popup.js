@@ -1,3 +1,9 @@
+var google_id = '';
+
+chrome.identity.getProfileUserInfo(function(userInfo){
+        google_id = userInfo.email;
+});
+
 function submitDetails(){
     event.preventDefault();
 
@@ -12,18 +18,18 @@ function submitDetails(){
     var telephone = $("#telephone").val();
 
     dataRef.push({address:address, email:email, firstname: firstname, lastname:lastname, telephone:telephone, year:year});
-    alert("hi");
 }
 
 window.addEventListener('load', function(evt) {
-    // console.log('1');
-    // var start = 1900;
-    // var end = new Date().getFullYear();
-    // var select = document.getElementById("year");
-    // for(var year = start; year <= end; year++){
-    //   var option = document.createElement('option');
-    //   option.text = option.value = year;
-    //   select.add(option, 0);
-    // }
-    document.getElementById('user-info-form').addEventListener('submit', submitDetails);
+    if(!google_id){
+        document.getElementById('sign-in').style.display = 'block';
+        document.getElementById('user-info-form').style.display = 'none';
+        document.getElementById('user-history').style.display = 'none';
+    } else{
+        document.getElementById('sign-in').style.display = 'none';
+        document.getElementById('user-info-form').style.display = 'block';
+        document.getElementById('user-history').style.display = 'none';
+        document.getElementById('user-info-form').addEventListener('submit', submitDetails);
+    }
+    
 });

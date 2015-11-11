@@ -10,6 +10,7 @@
     <script src='/script/firebase.js'></script>
     <script src='/script/jquery-1.8.3.min.js'></script>
     <script src='/script/popup.js'></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
     <title>LeakSentry Chrome Extension</title>
     <!--
       - JavaScript and HTML must be in separate files: see our Content Security
@@ -21,6 +22,9 @@
   </head>
   <body>
   	<h3>LeakSentry</h3>
+    <div id = "sign-in">
+    <h5>Please log into your Google Account to use LeakSentry Chrome Extension.</h5>
+    </div>
     <div class = "form-wrapper" >
       <form class = "user-info-form" id = "user-info-form">
         <label class = "user-info" for = "first-name">First Name</label>
@@ -43,6 +47,9 @@
 
         <input type = 'submit' value = 'submit' class = 'submit-btn' id = 'save' />
       </form>
+    </div>
+    <div id = "user-history">
+    <h5>User History Here.</h5>
     </div>
   </body>
 </html>
