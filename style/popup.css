@@ -1,0 +1,35 @@
+body {
+  font-family: "Arial", "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+  font-size: 100%;
+}
+
+.user-info-form{
+  line-height: 30px;
+}
+
+.form-wrapper{
+  width: 400px;
+  padding: 20px;
+}
+
+.user-info{
+  display: inline-block;
+  width: 30%;
+  margin-right: 30px;
+}
+
+.value{
+  height: 20px;
+  width: 60%
+}
+
+input:required:invalid, input:focus:invalid {
+  background-image: url(/images/invalid.png);
+  background-position: right top;
+  background-repeat: no-repeat;
+}
+input:required:valid {
+  background-image: url(/images/valid.png);
+  background-position: right top;
+  background-repeat: no-repeat;
+}

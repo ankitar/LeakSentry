@@ -6,12 +6,17 @@
   "content_security_policy": "script-src 'self' https://cdn.firebase.com https://*.firebaseio.com; object-src 'self'",
 
   "browser_action": {
-    "default_icon": "icon.png",
+    "default_icon": "/images/icon.png",
     "default_popup": "popup.html"
   },
-
   "background": {
-    "scripts": ["background.js"]
+    "scripts" :["/script/background.js"]
+  },
+  "oauth2": {
+    "client_id": "554311937178-28rsg8vmqrdfqe04f0adb2ler6abih48.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
   },
   
   "permissions": [
@@ -20,5 +25,6 @@
     "webRequestBlocking",
     "<all_urls>",
     "identity"
+    "identity.email"
   ]
 }

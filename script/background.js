@@ -1,3 +1,9 @@
+chrome.identity.getProfileUserInfo(function(userInfo){
+    if(!userInfo.email){
+        alert("Please log into your Google Account to use LeakSentry Chrome Extension.");
+    }
+});
+
 chrome.webRequest.onBeforeRequest.addListener(
   function(info) {
     console.log("intercepted: ");
