@@ -2,9 +2,9 @@ chrome.identity.getProfileUserInfo(function(userInfo){
     if(!userInfo.email){
         alert("Please log into your Google Account to use LeakSentry Chrome Extension.");
     }
-});
+}); 
 
-chrome.webRequest.onBeforeRequest.addListener(
+chrome.webRequest.onBeforeSendHeaders.addListener(
   function(info) {
     console.log("intercepted: ");
     console.log(info);
@@ -13,6 +13,6 @@ chrome.webRequest.onBeforeRequest.addListener(
     // return {redirectUrl: loldogs[i]};
   },
   // filters
-  {urls: ["*://www.facebook.com/*"]},
+  {urls: ["<all_urls>"]},
   // extraInfoSpec
-  ["blocking"]);
+  ["requestHeaders", "blocking"]);

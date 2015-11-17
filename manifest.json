@@ -24,7 +24,7 @@
     "webRequest", 
     "webRequestBlocking",
     "<all_urls>",
-    "identity"
+    "identity",
     "identity.email"
   ]
 }
