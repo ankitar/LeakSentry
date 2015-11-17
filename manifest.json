@@ -21,13 +21,14 @@
   },
   
   "permissions": [
-    "activeTab",
-    "webRequest", 
-    "webRequestBlocking",
-    "<all_urls>",
-    "identity",
-    "identity.email",
-    "tabs", 
-    "browsingData"
-  ]
+      "activeTab",
+      "tabs",
+      "webRequest", 
+      "cookies",
+      "webRequestBlocking",
+      "notifications",
+      "<all_urls>",
+      "identity",
+      "identity.email"
+    ]
 }
