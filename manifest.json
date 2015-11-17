@@ -10,7 +10,8 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts" :["/script/background.js"]
+    "scripts" :["/script/background.js", "/script/firebase.js"],
+    "persistent": true
   },
   "oauth2": {
     "client_id": "554311937178-28rsg8vmqrdfqe04f0adb2ler6abih48.apps.googleusercontent.com",
@@ -25,6 +26,8 @@
     "webRequestBlocking",
     "<all_urls>",
     "identity",
-    "identity.email"
+    "identity.email",
+    "tabs", 
+    "browsingData"
   ]
 }

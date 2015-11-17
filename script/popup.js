@@ -1,4 +1,6 @@
 var google_id = '';
+var curr_user = null;
+var dataRef = new Firebase('https://leaksentry.firebaseio.com/');
 
 chrome.identity.getProfileUserInfo(function(userInfo){
         google_id = userInfo.email;
@@ -6,10 +8,7 @@ chrome.identity.getProfileUserInfo(function(userInfo){
 
 function submitDetails(){
     event.preventDefault();
-
-    console.log('submit');
-
-    var dataRef = new Firebase('https://leaksentry.firebaseio.com/');
+    
     var firstname = $("#firstname").val();
     var lastname = $("#lastname").val();
     var year = $("#year").val();
