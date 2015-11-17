@@ -8,10 +8,14 @@ chrome.identity.getProfileUserInfo(function(userInfo){
         if(snapshot.val() == null){
           alert("Please enter your PII for LeakSentry to work.");
         } else{
+          var info = "";
           snapshot.forEach(function(data) {
             data.forEach(function(part){
-              alert(part.val());
-          })});
+              info += part.val();
+              info += "\n";
+            })
+          });
+          alert(info);
         }
       });
     }
