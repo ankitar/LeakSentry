@@ -4,6 +4,7 @@ body {
 }
 
 .user-info-form{
+  display:none;
   line-height: 30px;
 }
 
@@ -22,6 +23,11 @@ body {
   height: 20px;
   width: 60%
 }
+
+#user-history, #sign-in{
+  display: none;
+}
+
 
 input:required:invalid, input:focus:invalid {
   background-image: url(/images/invalid.png);
