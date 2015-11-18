@@ -1,11 +1,12 @@
 // global variables
+var UserRefUrl = 'https://leaksentry.firebaseio.com/users';
 var userRef = new Firebase('https://leaksentry.firebaseio.com/users');
 var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo')
 var websiteName = "dummy_website_dot_com";
 var user;
 
 // define User object constructor
-function User(email, website, firstName, lastName, telephone, year, address){
+function User(email, website, firstName, lastName, telephone, year, address, id){
     this.email = email;
     this.website = website;
     this.firstName = firstName;
@@ -13,6 +14,7 @@ function User(email, website, firstName, lastName, telephone, year, address){
     this.address = address;
     this.telephone = telephone;
     this.year = year;
+    this.id = id;
 }
 
 // websiteinfo 
@@ -49,12 +51,11 @@ chrome.identity.getProfileUserInfo(function(userInfo){
             console.log(snapshot.val());
             snapshot.forEach(function(data) {
                 var userData = data.val();
-                var email = userData.email;
                 var website;
                 if(userData.hasOwnProperty('website')){
                     website = userData.website;
                 }
-                user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year);
+                user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year, data.key());
                 console.log(user);
           });
         }
@@ -146,13 +147,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
           prev_action = true;
           console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
         }
-
+        
         //Crowdsourcing
         var majority = "x% of users have y-ed.";
         console.log(majority);
 
         var message = leak + "\n" + "Alexa Rank: " + 9999 + "\n" + "WOT: " +   "Low Trustworthiness" + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+        updateUserWebsiteInfo(domain_thirdparty, action);
     }
 
 }
@@ -172,9 +174,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
 
 // This function checks if URL was visited before by the user, if it was visited then returns action take otherwise returns
 function checkIfVisited(url){
-
-    var re = /[\.]{1}/g;
-    urlModified = url.replace(re, '_dot_');
+    urlModified = convertToInternalUrl(url);
     //If user is undefined return null - not possible though but shit can happen
     if(typeof user == "undefined"){
         return null;
@@ -186,4 +186,27 @@ function checkIfVisited(url){
     if(website.hasOwnProperty(urlModified)){
         return website[urlModified];
     }
+}
+
+// update action taken by the user for the website.
+function updateUserWebsiteInfo(url, action){
+    console.log()
+    if(typeof user.website == "undefined") {
+        currentUserRefUrl = UserRefUrl + '/' + user.id;
+        var websiteJson = new Object();
+        websiteJson[convertToInternalUrl(url)] = action;
+        var json = new Object();
+        json['website'] = websiteJson;
+        currentUserRefUrl.update(JSON.stringify(json));
+        console.log("update successful");
+    } else {
+        
+    }
+    
+}
+
+// convert URL to internal storage format
+function convertToInternalUrl(url){
+    var re = /[\.]{1}/g;
+    return url.replace(re, '_dot_');
 }
