@@ -17,7 +17,7 @@ function User(email, website, firstName, lastName, telephone, year, address, id)
     this.id = id;
 }
 
-// websiteinfo 
+// websiteinfo
 function getWebsiteDetails(websiteName){
   websiteInfoRef.orderByChild(websiteName).once('value', function(snapshot){
     if(snapshot.val() == null){
@@ -154,6 +154,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
 
         var message = leak + "\n" + "Alexa Rank: " + 9999 + "\n" + "WOT: " +   "Low Trustworthiness" + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+
         updateUserWebsiteInfo(domain_thirdparty, action);
     }
 
@@ -172,9 +173,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
   // extraInfoSpec
   ["requestHeaders", "blocking"]);
 
+function processURL(url){
+  var re = /[\.]{1}/g;
+  return url.replace(re, '_dot_');
+}
+
 // This function checks if URL was visited before by the user, if it was visited then returns action take otherwise returns
 function checkIfVisited(url){
-    urlModified = convertToInternalUrl(url);
+    urlModified = processURL(url);
     //If user is undefined return null - not possible though but shit can happen
     if(typeof user == "undefined"){
         return null;
@@ -194,7 +200,7 @@ function updateUserWebsiteInfo(url, action){
     if(typeof user.website == "undefined") {
         currentUserRefUrl = UserRefUrl + '/' + user.id;
         var websiteJson = new Object();
-        websiteJson[convertToInternalUrl(url)] = action;
+        websiteJson[processURL(url)] = action;
         var json = new Object();
         json['website'] = websiteJson;
         currentUserRefUrl.update(JSON.stringify(json));
@@ -205,8 +211,4 @@ function updateUserWebsiteInfo(url, action){
     
 }
 
-// convert URL to internal storage format
-function convertToInternalUrl(url){
-    var re = /[\.]{1}/g;
-    return url.replace(re, '_dot_');
-}
+
