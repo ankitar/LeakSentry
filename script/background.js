@@ -100,21 +100,38 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
           }
        }
     }
-    var domain_thirdparty = getDomain(url_thirdparty);
-    var has_visited;
-    //For all the PII values which are being leaked
-    for(var param in params) {
-       console.log("Identified leak! The website " + domain + " is leaking your "+ param + " - " + params[param] + " to " + domain_thirdparty);
 
-       // Check if the user visited the URL in the past
-       has_visited = checkIfVisited(domain_thirdparty);
-       if(has_visited!=null){
-         console.log("You have visited" + domain_thirdparty + " and " + has_visited + " it.");
-       }
+    if(Object.keys(params).length>0){
 
-       //Crowdsourcing
-       console.log("x% of users have y-ed " + domain_thirdparty);
+        var domain_thirdparty = getDomain(url_thirdparty);
+        var has_visited;
+
+        //For all the PII values which are being leaked
+        var leak = "Identified leak! The website " + domain + " is leaking your ";
+        for(var param in params) {
+          var p = param + " - " + params[param] + "; ";
+          leak+=p;
+        }
+        leak+= " to " ;
+        leak+= domain_thirdparty;
+        console.log(leak);
+
+        // Check if the user visited the URL in the past
+        has_visited = checkIfVisited(domain_thirdparty);
+        var prev_action = false;
+        if(has_visited!=null){
+          prev_action = true;
+          console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
+        }
+
+        //Crowdsourcing
+        var majority = "x% of users have y-ed.";
+        console.log(majority);
+
+        var message = leak + "\n" + "Alexa Rank: " + 9999 + "\n" + "WOT: " +   "Low Trustworthiness" + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+        var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
     }
+
 }
 
     // return {cancel:true};
