@@ -1,7 +1,12 @@
     // define User object constructor
-    function User(email, website){
+    function User(email, website, firstName, lastName, telephone, year, address){
         this.email = email;
         this.website = website;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.telephone = telephone;
+        this.year = year;
     }
 
     // define current user
@@ -26,8 +31,8 @@
                     if(userData.hasOwnProperty('website')){
                         website = userData.website;
                     }
-                    user = new User(email, website);
-                    //console.log(user);
+                    user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year);
+                    console.log(user);
               });
             }
           });
