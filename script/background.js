@@ -20,20 +20,20 @@ chrome.identity.getProfileUserInfo(function(userInfo){
         }
       });
     }
-}); 
+});
 
 
 console.log('cookies');
 chrome.cookies.getAll({}, function(c){
   console.log(c);
 });
-  
+
 var taburl;
 
 chrome.tabs.onUpdated.addListener(function(tabID, changeInfo, tab){
       if(changeInfo.url !== undefined && changeInfo.url !== 'chrome://newtab/'){
         console.log('changeInfo');
-        console.log(changeInfo.url);  
+        console.log(changeInfo.url);
         taburl = changeInfo.url;
       }
 });
@@ -45,7 +45,7 @@ chrome.tabs.onActivated.addListener(function(tab){
          function(tabs){
             if(tabs[0].url !== 'chrome://newtab/'){
               // console.log('activated');
-              // console.log(tabs[0].url);  
+              // console.log(tabs[0].url);
               taburl = tabs[0].url;
             }
          }
@@ -59,20 +59,30 @@ chrome.tabs.onHighlighted.addListener(function(tab){
          function(tabs){
             if(tabs[0].url !== 'chrome://newtab/'){
               // console.log('highlight');
-              // console.log(tabs[0].url);  
+              // console.log(tabs[0].url);
               taburl = tabs[0].url;
             }
          }
       );
 });
 
+function getDomain(url){
+
+  var a = document.createElement('a');
+  a.href = url;
+
+  return a.hostname;
+}
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function(info) {
-   
+
     // console.log('taburl');
-    // console.log(taburl); 
+    // console.log(taburl);
     if(taburl !== null && taburl !== undefined){
+
+      var domain = getDomain(taburl);
+      /* moved to separate function
       var url = taburl;
       var text = taburl.split('/');
       var new_text = text[2].split('.');
@@ -80,10 +90,10 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
         var domain;
         if(new_text.length < 3)
           domain = new_text[0];
-        else 
+        else
           domain = new_text[1];
-      }
-      
+      }*/
+
       // console.log('taburl');
       // console.log(taburl);
       // console.log('new text');
@@ -93,19 +103,32 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 
     }
 
-    
-
-    if(info.url.indexOf(domain) != -1){
-      // console.log('same domain');
+    var url_thirdparty = info.url;
+    if(url_thirdparty.indexOf(domain) != -1){
+      //console.log('same domain');
     }
     else{
-      console.log('diff domain');
-      console.log("intercepted: ");
-      console.log(info);
-    }  
+      //console.log('diff domain');
+      //console.log("intercepted: ");
+      //console.log(info);
+      //console.log(info.url);
+
+      //parse the url using regex
+      var regex = /[?]([^&#=]+)=([^&#=]+)/g;
+      var found;
+      var params = {};
+      while(found=regex.exec(url_thirdparty)){
+        params[found[1]] = found[2];
+      }
+
+      for(var param in params) {
+        //add here: go through the user's PII in firebase to check if the query parameters match any of the user provided PII and take required action 
+        console.log("Identified leak! The website " + domain + " is leaking your "+ param + " - " + params[param] + " to " + getDomain(url_thirdparty));
+      }
+    }
 
     // return {cancel:true};
-    
+
     // Redirect the lolcal request to a random loldog URL.
     // var i = Math.round(Math.random() * loldogs.length);
     // return {redirectUrl: loldogs[i]};
@@ -113,6 +136,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 
   },
   // filters
-  {urls: ["<all_urls>"]},
+  {
+    urls: ["<all_urls>"],
+    types: ["main_frame", "sub_frame", "object", "xmlhttprequest","other"] //filtering the type of requests
+  },
   // extraInfoSpec
   ["requestHeaders", "blocking"]);
