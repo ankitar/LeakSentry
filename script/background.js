@@ -4,7 +4,7 @@ chrome.identity.getProfileUserInfo(function(userInfo){
         alert("Please log into your Google Account to use LeakSentry Chrome Extension.");
     }
     else{
-      var fireBaseRef = new Firebase('https://leaksentry.firebaseio.com/Users');
+      var fireBaseRef = new Firebase('https://leaksentry.firebaseio.com/users');
       fireBaseRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
         if(snapshot.val() == null){
           alert("Please enter your PII for LeakSentry to work.");
