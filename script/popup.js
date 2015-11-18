@@ -37,23 +37,14 @@ $(document).ready(function(){
 
 // Form details
 function show_form(){
-    console.log(curr_user_info);
-    console.log(google_id);
-
     if(!google_id){
         document.getElementById('sign-in').style.display = 'block';
-<<<<<<< HEAD
-        document.getElementById('user-info-form').style.display = 'none';
-        document.getElementById('user-history').style.display = 'none';
-    } else if(curr_user_info == null){
-        document.getElementById('sign-in').style.display = 'none';
-=======
-        
     } else if(!curr_user_info){
->>>>>>> a70d2583cff9e07a3beebcb12e9788bc78162b01
+        document.getElementById('sign-in').style.display = 'none';
         document.getElementById('user-info-form').style.display = 'block';
         document.getElementById('user-info-form').addEventListener('submit', submitDetails);
     } else{
+        document.getElementById('user-info-form').style.display = 'none';
         document.getElementById('user-history').style.display = 'block';
     }
 
