@@ -1,3 +1,9 @@
+// global variables
+var userRef = new Firebase('https://leaksentry.firebaseio.com/users');
+var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo')
+var websiteName = "dummy_website_dot_com";
+var user;
+
 // define User object constructor
 function User(email, website, firstName, lastName, telephone, year, address){
     this.email = email;
@@ -9,17 +15,34 @@ function User(email, website, firstName, lastName, telephone, year, address){
     this.year = year;
 }
 
-// define current user
-var user;
+// websiteinfo 
+function getWebsiteDetails(websiteName){
+  websiteInfoRef.orderByChild(websiteName).once('value', function(snapshot){
+    if(snapshot.val() == null){
+      alert("new website");
+    } else{
+      var info = "Actions taken for " + websiteName + "website previously: \n";
+      snapshot.forEach(function(data){
+        data.forEach(function(part){
+          info += part.key() + ": " + part.val();
+          info += "\n";
 
-var fireBaseRef = new Firebase('https://leaksentry.firebaseio.com/users');
+        })
+        });
+        alert(info);
+      }
+  });
+}
+
+
+// define current user
 
 chrome.identity.getProfileUserInfo(function(userInfo){
     if(!userInfo.email){
         alert("Please log into your Google Account to use LeakSentry Chrome Extension.");
     }
     else{
-        fireBaseRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
+        userRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
         if(snapshot.val() == null){
           alert("Please enter your PII for LeakSentry to work.");
         } else{
