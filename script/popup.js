@@ -32,7 +32,7 @@ window.addEventListener('load', function(evt) {
         document.getElementById('sign-in').style.display = 'block';
         document.getElementById('user-info-form').style.display = 'none';
         document.getElementById('user-history').style.display = 'none';
-    } else if(curr_user_info != null){
+    } else if(curr_user_info == null){
         document.getElementById('sign-in').style.display = 'none';
         document.getElementById('user-info-form').style.display = 'block';
         document.getElementById('user-history').style.display = 'none';
