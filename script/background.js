@@ -129,7 +129,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
     for (var i = 0; i < info.requestHeaders.length; ++i) {
 
         if (info.requestHeaders[i].name === 'Cookie') {
-            console.log("Inspecting WebRequest cookie for possible PPI leak.");
+            console.log("Inspecting WebRequest cookies requestHeader for possible PPI leak through.");
 
             //parse the cookie to get name value pairs
             var cookie = info.requestHeaders[i].value.split(';');
