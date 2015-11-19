@@ -28,10 +28,9 @@ function getWebsiteDetails(websiteName){
         data.forEach(function(part){
           info += part.key() + ": " + part.val();
           info += "\n";
-
         })
-        });
-        alert(info);
+      });
+      alert(info);
       }
   });
 }
@@ -147,13 +146,23 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
           prev_action = true;
           console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
         }
-        
+
         //Crowdsourcing
         var majority = "x% of users have y-ed.";
         console.log(majority);
 
-        var message = leak + "\n" + "Alexa Rank: " + 9999 + "\n" + "WOT: " +   "Low Trustworthiness" + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+
+        if(action == "1"){
+          action = "allow";
+        } else if(action == "2"){
+          action = "deny";
+        } else if(action == "3"){
+          action ="scrub";
+        } else {
+          action = "allow"; //default behavior
+        }
 
         updateUserWebsiteInfo(domain_thirdparty, action);
     }
@@ -196,19 +205,24 @@ function checkIfVisited(url){
 
 // update action taken by the user for the website.
 function updateUserWebsiteInfo(url, action){
-    console.log()
+
+    console.log(url + " " + action);
+    console.log(user.website);
+
+    var websiteJson = new Object();
+    websiteJson[processURL(url)] = action;
+
+
     if(typeof user.website == "undefined") {
-        currentUserRefUrl = UserRefUrl + '/' + user.id;
-        var websiteJson = new Object();
-        websiteJson[processURL(url)] = action;
+        var currentUserRefUrl = UserRefUrl + '/' + user.id;
         var json = new Object();
         json['website'] = websiteJson;
-        currentUserRefUrl.update(JSON.stringify(json));
-        console.log("update successful");
+        currentUserRef = new Firebase(currentUserRefUrl);
+        currentUserRef.update(json);
     } else {
-        
+      var websiteRefUrl = UserRefUrl + '/' + user.id + '/' + 'website';
+      var websiteRef = new Firebase(websiteRefUrl);
+      websiteRef.update(websiteJson);
     }
-    
+
 }
-
-
