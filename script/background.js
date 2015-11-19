@@ -146,6 +146,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         leak+= domain_thirdparty;
         console.log(leak);
 
+        var is_visited = is_website_visited(domain_thirdparty);
+
+
         // Check if the user visited the URL in the past
         has_visited = checkIfVisited(domain_thirdparty);
         var prev_action = false;
@@ -214,6 +217,13 @@ function userActionPromptBox(leak, prev_action, processedUrl){
   },
   // extraInfoSpec
   ["requestHeaders", "blocking"]);
+
+function is_website_visited(website){
+  console.log('is_website_visited');
+  console.log(website);
+
+  
+}
 
 function processURL(url){
   var re = /[\.]{1}/g;
