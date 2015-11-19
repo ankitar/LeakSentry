@@ -2,8 +2,9 @@
 var UserRefUrl = 'https://leaksentry.firebaseio.com/users';
 var userRef = new Firebase('https://leaksentry.firebaseio.com/users');
 var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo')
-var websiteName = "dummy_website_dot_com";
 var user;
+var highestFreqAction;
+var frequencyOfAction = -1;
 
 // define User object constructor
 function User(email, website, firstName, lastName, telephone, year, address, id){
@@ -16,25 +17,6 @@ function User(email, website, firstName, lastName, telephone, year, address, id)
     this.year = year;
     this.id = id;
 }
-
-// websiteinfo
-function getWebsiteDetails(websiteName){
-  websiteInfoRef.orderByChild(websiteName).once('value', function(snapshot){
-    if(snapshot.val() == null){
-      alert("new website");
-    } else{
-      var info = "Actions taken for " + websiteName + "website previously: \n";
-      snapshot.forEach(function(data){
-        data.forEach(function(part){
-          info += part.key() + ": " + part.val();
-          info += "\n";
-        })
-      });
-      alert(info);
-      }
-  });
-}
-
 
 // define current user
 
@@ -98,6 +80,31 @@ function getDomain(url){
   return a.hostname;
 }
 
+// websiteinfo
+function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
+  var websiteRef = websiteInfoRef.child(websiteName);
+  websiteRef.on('value', function(snapshot){
+    frequencyOfAction = -1;
+    var total = 0;
+    if(snapshot.val() != null){
+      snapshot.forEach(function(data){
+          total += data.val();
+          if(data.val() > frequencyOfAction){
+            highestFreqAction = data.key();
+            frequencyOfAction = data.val();
+        }
+      });
+      frequencyOfAction = ((frequencyOfAction * 100)/total);
+    }
+    console.log("value of high in getMaliciousWebsiteStats is " + highestFreqAction + "with frequency " + frequencyOfAction);
+    console.log("inside getMaliciousWebsiteStats");
+    console.log("leak " + leak);
+    console.log("prev_action " + prev_action);
+    console.log("websiteName " + websiteName);
+    callback(leak, prev_action, websiteName);
+  }); 
+}
+
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
 
     if(taburl !== null && taburl !== undefined){
@@ -148,39 +155,51 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         }
 
         //Crowdsourcing
-        var majority = "x% of users have y-ed.";
-        console.log(majority);
-
-        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
-        var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
-
-        if(action == "1"){
-          action = "allow";
-        } else if(action == "2"){
-          action = "deny";
-        } else if(action == "3"){
-          action ="scrub";
-        } else {
-          action = "allow"; //default behavior
-        }
-
-        updateUserWebsiteInfo(domain_thirdparty, action);
-
-        if(action == "3"){
-          // scrub
-          for(var param in params) {
-            var p = params[param];
-            info.url = info.url.replace(p, 'xxxx');
-          }
-          console.log(info);
-        }
-        else if(action == "2"){
-          // block
-          console.log('block'); 
-          return {cancel:true};
-        }
+        var processedUrl = processURL(domain_thirdparty);
+        getMaliciousWebsiteStats(processedUrl, leak, prev_action, userActionPromptBox);
     }
+}
 
+// callback function to be executed after getting snapshot of crowd source data of third party url
+function userActionPromptBox(leak, prev_action, processedUrl){
+  console.log("inside userActionPromptBox");
+  console.log("leak " + leak);
+  console.log("prev_action " + prev_action);
+  console.log("processedUrl " + processedUrl);
+  if(frequencyOfAction == -1){
+    var majority = "This is a new found malicious website.";
+  } else{
+    var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
+  }
+  var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+  var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+
+  if(action == "1"){
+    action = "allow";
+  } else if(action == "2"){
+    action = "deny";
+  } else if(action == "3"){
+    action ="scrub";
+  } else {
+    action = "allow"; //default behavior
+  }
+
+  updateUserWebsiteInfo(processedUrl, action);
+  updateCrowdSourcingWebsiteInfo(processedUrl, action);
+
+  if(action == "3"){
+    // scrub
+    for(var param in params) {
+      var p = params[param];
+      info.url = info.url.replace(p, 'xxxx');
+    }
+    console.log(info);
+  }
+  else if(action == "2"){
+    // block
+    console.log('block'); 
+    return {cancel:true};
+  }
 }
 
     // return {cancel:true};
@@ -224,7 +243,7 @@ function updateUserWebsiteInfo(url, action){
     console.log(user.website);
 
     var websiteJson = new Object();
-    websiteJson[processURL(url)] = action;
+    websiteJson[url] = action;
 
 
     if(typeof user.website == "undefined") {
@@ -239,4 +258,31 @@ function updateUserWebsiteInfo(url, action){
       websiteRef.update(websiteJson);
     }
 
+}
+
+// update the crowdsourcing websiteInfo database on the basis of action taken by user
+
+function updateCrowdSourcingWebsiteInfo(url, action){
+  console.log("update url " + url);
+  var websiteRef = websiteInfoRef.child(url);
+  var websiteInfoJson = new Object();
+  websiteRef.once('value', function(snapshot){
+    if(snapshot.val() != null){
+      var value;
+      var actionRef = websiteRef.child(action);
+      actionRef.once('value', function(snapshot){
+        value = snapshot.val();
+        console.log("value " + value);
+      })
+      websiteInfoJson[action] = value+1;
+      console.log(snapshot.val());
+      // websiteRef.update(websiteInfoJson);
+    }else{
+      websiteInfoJson["allow"] = 0;
+      websiteInfoJson["deny"] = 0;
+      websiteInfoJson["scrub"] = 0;
+      websiteInfoJson[action] = 1;
+      websiteRef.update(websiteInfoJson);
+    }
+  });
 }
