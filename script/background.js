@@ -165,6 +165,20 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         }
 
         updateUserWebsiteInfo(domain_thirdparty, action);
+
+        if(action == "3"){
+          // scrub
+          for(var param in params) {
+            var p = params[param];
+            info.url = info.url.replace(p, 'xxxx');
+          }
+          console.log(info);
+        }
+        else if(action == "2"){
+          // block
+          console.log('block'); 
+          return {cancel:true};
+        }
     }
 
 }
