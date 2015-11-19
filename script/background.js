@@ -251,8 +251,10 @@ function updateUserWebsiteInfo(url, action){
 
 function updateCrowdSourcingWebsiteInfo(url, action){
   var websiteInfoJson = new Object();
+  
   websiteInfoRef.orderByChild(url).once('value', function(snapshot){
-    if(snapshot.val() != null){
+    var websiteSnapshot = snapshot.val();
+    if(websiteSnapshot != null && websiteSnapshot.hasOwnProperty(url)){
       var websiteRef = websiteInfoRef.child(url);
       var websiteData = snapshot.val();
       var value = websiteData[url];
