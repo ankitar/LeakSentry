@@ -83,7 +83,7 @@ function getDomain(url){
 // websiteinfo
 function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
   var websiteRef = websiteInfoRef.child(websiteName);
-  websiteRef.on('value', function(snapshot){
+  websiteRef.once('value', function(snapshot){
     frequencyOfAction = -1;
     var total = 0;
     if(snapshot.val() != null){
@@ -96,11 +96,6 @@ function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
       });
       frequencyOfAction = ((frequencyOfAction * 100)/total);
     }
-    console.log("value of high in getMaliciousWebsiteStats is " + highestFreqAction + "with frequency " + frequencyOfAction);
-    console.log("inside getMaliciousWebsiteStats");
-    console.log("leak " + leak);
-    console.log("prev_action " + prev_action);
-    console.log("websiteName " + websiteName);
     callback(leak, prev_action, websiteName);
   }); 
 }
@@ -162,10 +157,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
 
 // callback function to be executed after getting snapshot of crowd source data of third party url
 function userActionPromptBox(leak, prev_action, processedUrl){
-  console.log("inside userActionPromptBox");
-  console.log("leak " + leak);
-  console.log("prev_action " + prev_action);
-  console.log("processedUrl " + processedUrl);
   if(frequencyOfAction == -1){
     var majority = "This is a new found malicious website.";
   } else{
@@ -238,10 +229,6 @@ function checkIfVisited(url){
 
 // update action taken by the user for the website.
 function updateUserWebsiteInfo(url, action){
-
-    console.log(url + " " + action);
-    console.log(user.website);
-
     var websiteJson = new Object();
     websiteJson[url] = action;
 
@@ -263,26 +250,22 @@ function updateUserWebsiteInfo(url, action){
 // update the crowdsourcing websiteInfo database on the basis of action taken by user
 
 function updateCrowdSourcingWebsiteInfo(url, action){
-  console.log("update url " + url);
-  var websiteRef = websiteInfoRef.child(url);
   var websiteInfoJson = new Object();
-  websiteRef.once('value', function(snapshot){
+  websiteInfoRef.orderByChild(url).once('value', function(snapshot){
     if(snapshot.val() != null){
-      var value;
-      var actionRef = websiteRef.child(action);
-      actionRef.once('value', function(snapshot){
-        value = snapshot.val();
-        console.log("value " + value);
-      })
-      websiteInfoJson[action] = value+1;
-      console.log(snapshot.val());
-      // websiteRef.update(websiteInfoJson);
-    }else{
+      var websiteRef = websiteInfoRef.child(url);
+      var websiteData = snapshot.val();
+      var value = websiteData[url];
+      value[action] += 1;
+      websiteRef.update(value);
+      } else{
+      var websiteJson = new Object();
       websiteInfoJson["allow"] = 0;
       websiteInfoJson["deny"] = 0;
       websiteInfoJson["scrub"] = 0;
       websiteInfoJson[action] = 1;
-      websiteRef.update(websiteInfoJson);
+      websiteJson[url] = websiteInfoJson;
+      websiteInfoRef.update(websiteJson);
     }
   });
 }
