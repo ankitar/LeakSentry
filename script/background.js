@@ -70,7 +70,7 @@ chrome.tabs.onActivated.addListener(function(tab){
     taburl = null;
     chrome.tabs.query({'active': true, 'windowId': chrome.windows.WINDOW_ID_CURRENT},
        function(tabs){
-          if(tabs[0].url !== 'chrome://newtab/'){
+          if(tabs != undefined && tabs.length > 0 && tabs[0].url !== 'chrome://newtab/'){
              taburl = tabs[0].url;
           }
        }
@@ -81,7 +81,7 @@ chrome.tabs.onHighlighted.addListener(function(tab){
     taburl = null;
     chrome.tabs.query({'active': true, 'windowId': chrome.windows.WINDOW_ID_CURRENT},
       function(tabs){
-        if(tabs[0].url !== 'chrome://newtab/'){
+        if(tabs != undefined && tabs.length > 0 && tabs[0].url !== 'chrome://newtab/'){
           taburl = tabs[0].url;
         }
       }
@@ -118,27 +118,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     }
 
     var url_thirdparty = info.url;
-<<<<<<< HEAD
-=======
-    if(url_thirdparty.indexOf(domain) == -1){
-
-    console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
-
-    //parse the URL using regex
-    var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
-    var found;
-    var params = {};
-    //Check if any query value of the URL matches one of the fields of PII provided by the user
-    while(found=regex.exec(url_thirdparty)){
-       for(var property in user){
-          if (user.hasOwnProperty(property)) {
-             if(found[2]==user[property]){ //value being leaked matches PII saved in database
-               params[found[1]] = found[2];
-             }
-          }
-       }
-    }
->>>>>>> fe6e1e25fc41c58bb7a389082c9a0a666259ed77
 
     if(url_thirdparty.indexOf(domain) == -1){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
@@ -226,16 +205,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         }
 
         var is_visited = is_website_visited(domain_thirdparty);
-<<<<<<< HEAD
-        
-        console.log('info');
-        console.log(info);
-      
-=======
 
-        console.log('is_visited');
-        console.log(is_visited);
->>>>>>> fe6e1e25fc41c58bb7a389082c9a0a666259ed77
         if(is_visited)
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
         else
