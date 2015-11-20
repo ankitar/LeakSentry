@@ -115,7 +115,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
     }
 
     var url_thirdparty = info.url;
-    if(!url_thirdparty.indexOf(domain) != -1){
+    if(url_thirdparty.indexOf(domain) == -1){
 
     console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
@@ -311,13 +311,14 @@ function updateUserWebsiteInfo(url, action){
 
 function updateCrowdSourcingWebsiteInfo(url, action){
   var websiteInfoJson = new Object();
-  
+  console.log('shit!!');
   websiteInfoRef.orderByChild(url).once('value', function(snapshot){
     var websiteSnapshot = snapshot.val();
     if(websiteSnapshot != null && websiteSnapshot.hasOwnProperty(url)){
       var websiteRef = websiteInfoRef.child(url);
       var websiteData = snapshot.val();
-      var value = websiteData[url];
+      var value = websiteData[url]
+      ;
       value[action] += 1;
       websiteRef.update(value);
       } else{
