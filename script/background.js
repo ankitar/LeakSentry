@@ -108,13 +108,15 @@ function getMaliciousWebsiteStats(websiteName){
     });  
   }
 
-  frequencyOfAction = ((frequencyOfAction * 100)/total);    
+  frequencyOfAction = ((frequencyOfAction * 100)/total).toFixed(2);    
   return frequencyOfAction;
 }
 
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
+    } else {
+      return;
     }
 
     var url_thirdparty = info.url;
@@ -175,9 +177,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         } else{
           var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
         }
-        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
-
-
+      
         console.log('frequency of visit');
         console.log(frequency_of_visit); 
 
@@ -194,7 +194,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         
         console.log('leak');
         console.log(leak);
-
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
 
         // Check if the user visited the URL in the past
         has_visited = checkIfVisited(domain_thirdparty);
