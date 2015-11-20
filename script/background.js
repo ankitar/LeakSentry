@@ -120,7 +120,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
     console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
     //parse the URL using regex
-    var regex = /[?]([^&#=]+)=([^&#=]+)/g;
+    var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
     var found;
     var params = {};
     //Check if any query value of the URL matches one of the fields of PII provided by the user
@@ -188,7 +188,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         var is_visited = is_website_visited(domain_thirdparty);
 
         console.log('is_visited');
-        console.log(is_visited);  
+        console.log(is_visited);
         if(is_visited)
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
         else
@@ -257,13 +257,13 @@ function is_website_visited(website){
   website = website.toLowerCase();
 
   for(var key in browsing_data){
-   var obj = browsing_data[key]; 
+   var obj = browsing_data[key];
    url = getDomain(obj.url);
    url = url.toLowerCase();
    if(website.indexOf(url.toLowerCase()) != -1)
       return true;
   }
-  return false; 
+  return false;
 }
 
 function processURL(url){
