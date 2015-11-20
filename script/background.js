@@ -5,6 +5,8 @@ var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo
 var user;
 var highestFreqAction;
 var frequencyOfAction = -1;
+var browsing_data;
+
 
 // define User object constructor
 function User(email, website, firstName, lastName, telephone, year, address, id){
@@ -17,6 +19,12 @@ function User(email, website, firstName, lastName, telephone, year, address, id)
     this.year = year;
     this.id = id;
 }
+
+// check browsing history
+chrome.history.search({text: ''}, function(data){
+  console.log('history');
+  browsing_data = data;
+});
 
 // define current user
 
@@ -141,16 +149,24 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         leak+= domain_thirdparty;
         console.log(leak);
 
-        var is_visited = is_website_visited(domain_thirdparty);
-
 
         // Check if the user visited the URL in the past
         has_visited = checkIfVisited(domain_thirdparty);
         var prev_action = false;
         if(has_visited!=null){
           prev_action = true;
-          console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
+          // console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
         }
+
+
+        var is_visited = is_website_visited(domain_thirdparty);
+
+        console.log('is_visited');
+        console.log(is_visited);  
+        if(is_visited)
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
+        else
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
 
         //Crowdsourcing
         var processedUrl = processURL(domain_thirdparty);
@@ -210,10 +226,17 @@ function userActionPromptBox(leak, prev_action, processedUrl){
   ["requestHeaders", "blocking"]);
 
 function is_website_visited(website){
-  console.log('is_website_visited');
-  console.log(website);
+  var url;
+  website = website.toLowerCase();
 
-  
+  for(var key in browsing_data){
+   var obj = browsing_data[key]; 
+   url = getDomain(obj.url);
+   url = url.toLowerCase();
+   if(website.indexOf(url.toLowerCase()) != -1)
+      return true;
+  }
+  return false; 
 }
 
 function processURL(url){
