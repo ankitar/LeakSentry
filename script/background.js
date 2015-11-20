@@ -6,6 +6,12 @@ var user;
 var highestFreqAction;
 var frequencyOfAction = -1;
 var browsing_data;
+var global_snapshot;
+
+//get snapshot
+websiteInfoRef.on('value', function(snapshot){
+  global_snapshot = snapshot;
+});
 
 
 // define User object constructor
@@ -88,54 +94,51 @@ function getDomain(url){
   return a.hostname;
 }
 
-// websiteinfo
-function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
-  var websiteRef = websiteInfoRef.child(websiteName);
-  websiteRef.once('value', function(snapshot){
-    frequencyOfAction = -1;
-    var total = 0;
-    if(snapshot.val() != null){
-      snapshot.forEach(function(data){
-          total += data.val();
-          if(data.val() > frequencyOfAction){
-            highestFreqAction = data.key();
-            frequencyOfAction = data.val();
-        }
-      });
-      frequencyOfAction = ((frequencyOfAction * 100)/total);
-    }
-    callback(leak, prev_action, websiteName);
-  });
+function getMaliciousWebsiteStats(websiteName){
+  var snapshot = global_snapshot.child(websiteName);
+  frequencyOfAction = -1;
+  var total = 0;  
+  if(snapshot.val() != null){
+    snapshot.forEach(function(data){
+      total += data.val();
+      if(data.val() > frequencyOfAction){
+        highestFreqAction = data.key();
+        frequencyOfAction = data.val();
+      }
+    });  
+  }
+
+  frequencyOfAction = ((frequencyOfAction * 100)/total);    
+  return frequencyOfAction;
 }
 
-chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
-
+chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
     }
 
     var url_thirdparty = info.url;
+
     if(url_thirdparty.indexOf(domain) == -1){
+      console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
-    console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
+      //parse the URL using regex
+      var regex = /[?]([^&#=]+)=([^&#=]+)/g;
+      var found;
+      var params = {};
 
-    //parse the URL using regex
-    var regex = /[?]([^&#=]+)=([^&#=]+)/g;
-    var found;
-    var params = {};
-    //Check if any query value of the URL matches one of the fields of PII provided by the user
-    while(found=regex.exec(url_thirdparty)){
-       for(var property in user){
-          if (user.hasOwnProperty(property)) {
-             if(found[2]==user[property]){ //value being leaked matches PII saved in database
-               params[found[1]] = found[2];
-             }
-          }
-       }
-    }
+      //Check if any query value of the URL matches one of the fields of PII provided by the user
+      while(found=regex.exec(url_thirdparty)){
+         for(var property in user){
+            if (user.hasOwnProperty(property)) {
+               if(found[2]==user[property]){ //value being leaked matches PII saved in database
+                 params[found[1]] = found[2];
+               }
+            }
+         }
+      }
 
-    for (var i = 0; i < info.requestHeaders.length; ++i) {
-
+      for (var i = 0; i < info.requestHeaders.length; ++i) {
         if (info.requestHeaders[i].name === 'Cookie') {
             console.log("Inspecting WebRequest cookies requestHeader for possible PPI leak through.");
 
@@ -156,13 +159,28 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
             }
             break;
         }
-    }
+      }
 
-    console.log(params);
+      // console.log(params);
 
-    if(Object.keys(params).length>0){
-
+      if(Object.keys(params).length>0){
         var domain_thirdparty = getDomain(url_thirdparty);
+
+        //Crowdsourcing
+        var processedUrl = processURL(domain_thirdparty);
+        var frequency_of_visit = getMaliciousWebsiteStats(processedUrl, leak, prev_action);
+        
+        if(frequencyOfAction == -1){
+          var majority = "This is a new found malicious website.";
+        } else{
+          var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
+        }
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+
+
+        console.log('frequency of visit');
+        console.log(frequency_of_visit); 
+
         var has_visited;
 
         //For all the PII values which are being leaked
@@ -173,6 +191,8 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         }
         leak+= " to " ;
         leak+= domain_thirdparty;
+        
+        console.log('leak');
         console.log(leak);
 
 
@@ -184,73 +204,56 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
           // console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
         }
 
-
         var is_visited = is_website_visited(domain_thirdparty);
-
-        console.log('is_visited');
-        console.log(is_visited);  
+        
+        console.log('info');
+        console.log(info);
+      
         if(is_visited)
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
         else
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
 
-        //Crowdsourcing
-        var processedUrl = processURL(domain_thirdparty);
-        getMaliciousWebsiteStats(processedUrl, leak, prev_action, userActionPromptBox);
-    }
+        var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
 
-}
+        if(action == "1")
+          action = "allow";
+        else if(action == "2")
+          action = "deny";
+        else if(action == "3")
+          action ="scrub";
+        else
+          action = "allow"; //default behavior
 
-// callback function to be executed after getting snapshot of crowd source data of third party url
-function userActionPromptBox(leak, prev_action, processedUrl){
-  if(frequencyOfAction == -1){
-    var majority = "This is a new found malicious website.";
-  } else{
-    var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
-  }
-  var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
-  var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+        updateUserWebsiteInfo(processedUrl, action);
+        updateCrowdSourcingWebsiteInfo(processedUrl, action);
 
-  if(action == "1"){
-    action = "allow";
-  } else if(action == "2"){
-    action = "deny";
-  } else if(action == "3"){
-    action ="scrub";
-  } else {
-    action = "allow"; //default behavior
-  }
+        if(action == "scrub"){
+          // scrub
+          for(var param in params) {
+            var p = params[param];
+            info.url = info.url.replace(p, 'xxxx');
+          }
+          console.log(info);
+        }
+        else if(action == "deny"){
+          // block
+          console.log('block');
+          return {cancel:true};
+        }  
+      
+      }
+    }    
+},
+// filters
+{
+  urls: ["<all_urls>"],
+  types: ["main_frame", "sub_frame", "object", "xmlhttprequest","other"] //filtering the type of requests
+},
+// extraInfoSpec
+["requestHeaders", "blocking"]);
 
-  updateUserWebsiteInfo(processedUrl, action);
-  updateCrowdSourcingWebsiteInfo(processedUrl, action);
 
-  if(action == "3"){
-    // scrub
-    for(var param in params) {
-      var p = params[param];
-      info.url = info.url.replace(p, 'xxxx');
-    }
-    console.log(info);
-  }
-  else if(action == "2"){
-    // block
-    console.log('block');
-    return {cancel:true};
-  }
-}
-
-    // return {cancel:true};
-    // Redirect the lolcal request to a random loldog URL.
-    // var i = Math.round(Math.random() * loldogs.length);
-    // return {redirectUrl: loldogs[i]};
-  },
-  // filters
-  {
-    urls: ["<all_urls>"],
-    types: ["main_frame", "sub_frame", "object", "xmlhttprequest","other"] //filtering the type of requests
-  },
-  // extraInfoSpec
-  ["requestHeaders", "blocking"]);
 
 function is_website_visited(website){
   var url;
@@ -307,28 +310,119 @@ function updateUserWebsiteInfo(url, action){
 
 }
 
-// update the crowdsourcing websiteInfo database on the basis of action taken by user
 
 function updateCrowdSourcingWebsiteInfo(url, action){
+  var websiteRef = websiteInfoRef.child(url);  
+  var websiteSnapshot = global_snapshot.child(url);
   var websiteInfoJson = new Object();
-  console.log('shit!!');
-  websiteInfoRef.orderByChild(url).once('value', function(snapshot){
-    var websiteSnapshot = snapshot.val();
-    if(websiteSnapshot != null && websiteSnapshot.hasOwnProperty(url)){
-      var websiteRef = websiteInfoRef.child(url);
-      var websiteData = snapshot.val();
-      var value = websiteData[url]
-      ;
-      value[action] += 1;
-      websiteRef.update(value);
-      } else{
-      var websiteJson = new Object();
-      websiteInfoJson["allow"] = 0;
-      websiteInfoJson["deny"] = 0;
-      websiteInfoJson["scrub"] = 0;
-      websiteInfoJson[action] = 1;
-      websiteJson[url] = websiteInfoJson;
-      websiteInfoRef.update(websiteJson);
-    }
-  });
+  if(websiteSnapshot != null){
+    var websiteData = websiteSnapshot.val();
+    websiteData[action] += 1;
+    websiteRef.update(websiteData);  
+    } else{
+    var websiteJson = new Object();
+    websiteInfoJson["allow"] = 0;
+    websiteInfoJson["deny"] = 0;
+    websiteInfoJson["scrub"] = 0;
+    websiteInfoJson[action] = 1;
+    websiteJson[url] = websiteInfoJson;
+    websiteInfoRef.update(websiteJson);
+  }
 }
+
+
+
+// update the crowdsourcing websiteInfo database on the basis of action taken by user
+
+// function updateCrowdSourcingWebsiteInfo(url, action){
+//   var websiteInfoJson = new Object();
+//   websiteInfoRef.orderByChild(url).once('value', function(snapshot){
+//     var websiteSnapshot = snapshot.val();
+//     if(websiteSnapshot != null && websiteSnapshot.hasOwnProperty(url)){
+//       var websiteRef = websiteInfoRef.child(url);
+//       var websiteData = snapshot.val();
+//       var value = websiteData[url]
+//       ;
+//       value[action] += 1;
+//       websiteRef.update(value);
+//       } else{
+//       var websiteJson = new Object();
+//       websiteInfoJson["allow"] = 0;
+//       websiteInfoJson["deny"] = 0;
+//       websiteInfoJson["scrub"] = 0;
+//       websiteInfoJson[action] = 1;
+//       websiteJson[url] = websiteInfoJson;
+//       websiteInfoRef.update(websiteJson);
+//     }
+//   });
+// }
+
+
+// callback function to be executed after getting snapshot of crowd source data of third party url
+// function userActionPromptBox(leak, prev_action, processedUrl){
+//   if(frequencyOfAction == -1){
+//     var majority = "This is a new found malicious website.";
+//   } else{
+//     var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
+//   }
+//   var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+//   var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+
+//   if(action == "1"){
+//     action = "allow";
+//   } else if(action == "2"){
+//     action = "deny";
+//   } else if(action == "3"){
+//     action ="scrub";
+//   } else {
+//     action = "allow";
+//   }
+
+//   updateUserWebsiteInfo(processedUrl, action);
+//   updateCrowdSourcingWebsiteInfo(processedUrl, action);
+
+//   if(action == "3"){
+  
+//     for(var param in params) {
+//       var p = params[param];
+//       info.url = info.url.replace(p, 'xxxx');
+//     }
+//     console.log(info);
+//   }
+//   else if(action == "2"){
+  
+//     console.log('block');
+//     return {cancel:true};
+//   }
+// }
+
+  
+//   },
+  
+//   {
+//     urls: ["<all_urls>"],
+//     types: ["main_frame", "sub_frame", "object", "xmlhttprequest","other"] //filtering the type of requests
+//   },
+//   // extraInfoSpec
+//   ["requestHeaders", "blocking"]);
+
+
+// websiteinfo
+// function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
+//   var websiteRef = websiteInfoRef.child(websiteName);
+//   websiteRef.once('value', function(snapshot){
+//     frequencyOfAction = -1;
+//     var total = 0;
+//     if(snapshot.val() != null){
+//       snapshot.forEach(function(data){
+//           total += data.val();
+//           if(data.val() > frequencyOfAction){
+//             highestFreqAction = data.key();
+//             frequencyOfAction = data.val();
+//         }
+//       });
+//       frequencyOfAction = ((frequencyOfAction * 100)/total);
+//     }
+//     callback(leak, prev_action, websiteName);
+//   });
+// }
