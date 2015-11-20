@@ -105,7 +105,7 @@ function getMaliciousWebsiteStats(websiteName, leak, prev_action, callback){
       frequencyOfAction = ((frequencyOfAction * 100)/total);
     }
     callback(leak, prev_action, websiteName);
-  }); 
+  });
 }
 
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
@@ -117,7 +117,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
     var url_thirdparty = info.url;
     if(!url_thirdparty.indexOf(domain) != -1){
 
-    console.log("Inspecting third party website " + url_thirdparty + " for possible PPI leak.");
+    console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
     //parse the URL using regex
     var regex = /[?]([^&#=]+)=([^&#=]+)/g;
@@ -133,6 +133,32 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
           }
        }
     }
+
+    for (var i = 0; i < info.requestHeaders.length; ++i) {
+
+        if (info.requestHeaders[i].name === 'Cookie') {
+            console.log("Inspecting WebRequest cookies requestHeader for possible PPI leak through.");
+
+            //parse the cookie to get name value pairs
+            var cookie = info.requestHeaders[i].value.split(';');
+            //var test = "name=komal; phone=3476226844; expires=Thu, 18 Dec 2013 12:00:00 UTC; path=/";
+            //var cookie = test.split(';');
+
+            for(var i=0; i<cookie.length; i++) {
+                var p = cookie[i].split('=');
+                for(var property in user) {
+                   if (user.hasOwnProperty(property)) {
+                      if(p[1]==user[property]){ //value being leaked matches PII saved in database
+                         params[p[0]] = p[1];
+                      }
+                   }
+                }
+            }
+            break;
+        }
+    }
+
+    console.log(params);
 
     if(Object.keys(params).length>0){
 
@@ -172,6 +198,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info) {
         var processedUrl = processURL(domain_thirdparty);
         getMaliciousWebsiteStats(processedUrl, leak, prev_action, userActionPromptBox);
     }
+
 }
 
 // callback function to be executed after getting snapshot of crowd source data of third party url
@@ -207,7 +234,7 @@ function userActionPromptBox(leak, prev_action, processedUrl){
   }
   else if(action == "2"){
     // block
-    console.log('block'); 
+    console.log('block');
     return {cancel:true};
   }
 }
@@ -284,8 +311,10 @@ function updateUserWebsiteInfo(url, action){
 
 function updateCrowdSourcingWebsiteInfo(url, action){
   var websiteInfoJson = new Object();
+  
   websiteInfoRef.orderByChild(url).once('value', function(snapshot){
-    if(snapshot.val() != null){
+    var websiteSnapshot = snapshot.val();
+    if(websiteSnapshot != null && websiteSnapshot.hasOwnProperty(url)){
       var websiteRef = websiteInfoRef.child(url);
       var websiteData = snapshot.val();
       var value = websiteData[url];
