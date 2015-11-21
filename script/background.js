@@ -118,23 +118,19 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
-    } else {
-      return;
-    }
+    }else{
+      return; 
+    } 
 
     var url_thirdparty = info.url;
     var url = getDomain(url_thirdparty);
+    
+    var parts = url.split('.');
+    var subdomain = parts.shift();
+    var sndleveldomain = parts.slice(-2).join('.');
 
-    // console.log('url_thirdparty');
-    // console.log(url_thirdparty);
 
-    // console.log('domain');
-    // console.log(domain);
-
-    // console.log('third party domain');
-    // console.log(url);
-
-    if(url.indexOf(domain) == -1){
+    if(domain.indexOf(sndleveldomain) == -1){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
       //parse the URL using regex
@@ -157,7 +153,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             }
          }
       }
-
 
 
       for (var i = 0; i < info.requestHeaders.length; ++i) {
@@ -187,8 +182,8 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         //encodeURIComponent() will not encode: ~!*()'
         if (info.requestHeaders[i]!=undefined && info.requestHeaders[i]!=null && info.requestHeaders[i].name === 'Referer') {
             var referer = decodeURIComponent(info.requestHeaders[i].value);
-            console.log("Inspecting referer for possible PPI leak: ");
-            console.log(referer);
+            // console.log("Inspecting referer for possible PPI leak: ");
+            // console.log(referer);
             while(found=regex.exec(referer)){
                for(var property in user){
                   if (user.hasOwnProperty(property)) {
