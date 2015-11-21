@@ -1,7 +1,7 @@
 // global variables
 var UserRefUrl = 'https://leaksentry.firebaseio.com/users';
 var userRef = new Firebase('https://leaksentry.firebaseio.com/users');
-var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo')
+var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo');
 var user;
 var highestFreqAction;
 var frequencyOfAction = -1;
@@ -107,7 +107,9 @@ function getMaliciousWebsiteStats(websiteName){
       }
     });
   }
-
+  if(total == 0){
+    frequencyOfAction = 0;
+  }
   frequencyOfAction = ((frequencyOfAction * 100)/total).toFixed(2);
   return frequencyOfAction;
 }
