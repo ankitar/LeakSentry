@@ -97,7 +97,7 @@ function getDomain(url){
 function getMaliciousWebsiteStats(websiteName){
   var snapshot = global_snapshot.child(websiteName);
   frequencyOfAction = -1;
-  var total = 0;  
+  var total = 0;
   if(snapshot.val() != null){
     snapshot.forEach(function(data){
       total += data.val();
@@ -105,10 +105,10 @@ function getMaliciousWebsiteStats(websiteName){
         highestFreqAction = data.key();
         frequencyOfAction = data.val();
       }
-    });  
+    });
   }
 
-  frequencyOfAction = ((frequencyOfAction * 100)/total).toFixed(2);    
+  frequencyOfAction = ((frequencyOfAction * 100)/total).toFixed(2);
   return frequencyOfAction;
 }
 
@@ -125,7 +125,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
       //parse the URL using regex
-      var regex = /[?]([^&#=]+)=([^&#=]+)/g;
+      var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
       var found;
       var params = {};
 
@@ -171,15 +171,15 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         //Crowdsourcing
         var processedUrl = processURL(domain_thirdparty);
         var frequency_of_visit = getMaliciousWebsiteStats(processedUrl, leak, prev_action);
-        
+
         if(frequencyOfAction == -1){
           var majority = "This is a new found malicious website.";
         } else{
           var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
         }
-      
+
         console.log('frequency of visit');
-        console.log(frequency_of_visit); 
+        console.log(frequency_of_visit);
 
         var has_visited;
 
@@ -191,7 +191,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         }
         leak+= " to " ;
         leak+= domain_thirdparty;
-        
+
         console.log('leak');
         console.log(leak);
         var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
@@ -237,10 +237,10 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
           // block
           console.log('block');
           return {cancel:true};
-        }  
-      
+        }
+
       }
-    }    
+    }
 },
 // filters
 {
@@ -309,13 +309,13 @@ function updateUserWebsiteInfo(url, action){
 
 
 function updateCrowdSourcingWebsiteInfo(url, action){
-  var websiteRef = websiteInfoRef.child(url);  
+  var websiteRef = websiteInfoRef.child(url);
   var websiteSnapshot = global_snapshot.child(url);
   var websiteInfoJson = new Object();
   if(websiteSnapshot != null){
     var websiteData = websiteSnapshot.val();
     websiteData[action] += 1;
-    websiteRef.update(websiteData);  
+    websiteRef.update(websiteData);
     } else{
     var websiteJson = new Object();
     websiteInfoJson["allow"] = 0;
@@ -379,7 +379,7 @@ function updateCrowdSourcingWebsiteInfo(url, action){
 //   updateCrowdSourcingWebsiteInfo(processedUrl, action);
 
 //   if(action == "3"){
-  
+
 //     for(var param in params) {
 //       var p = params[param];
 //       info.url = info.url.replace(p, 'xxxx');
@@ -387,15 +387,15 @@ function updateCrowdSourcingWebsiteInfo(url, action){
 //     console.log(info);
 //   }
 //   else if(action == "2"){
-  
+
 //     console.log('block');
 //     return {cancel:true};
 //   }
 // }
 
-  
+
 //   },
-  
+
 //   {
 //     urls: ["<all_urls>"],
 //     types: ["main_frame", "sub_frame", "object", "xmlhttprequest","other"] //filtering the type of requests
