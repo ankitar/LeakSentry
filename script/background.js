@@ -389,7 +389,6 @@ function updateUserWebsiteInfo(url, action){
     var websiteJson = new Object();
     websiteJson[url] = action;
 
-
     if(typeof user.website == "undefined") {
         var currentUserRefUrl = UserRefUrl + '/' + user.id;
         var json = new Object();
@@ -410,26 +409,12 @@ function updateCrowdSourcingWebsiteInfo(url, action){
   var websiteSnapshot = global_snapshot.child(url);
   var websiteInfoJson = new Object();
 
-  console.log('websiteSnapshot');
-  console.log(websiteSnapshot);
-
-  console.log('url');
-  console.log(url);
-
-  if(websiteSnapshot != null){
+  if(websiteSnapshot.val() != null){
     var websiteData = websiteSnapshot.val();
-    
-    console.log('websiteData');
-    console.log(websiteData);
-
     websiteData[action] += 1;
     websiteRef.update(websiteData);
     } else{
     var websiteJson = new Object();
-    
-    console.log('websiteJson');
-    console.log(websiteJson);
-
     websiteInfoJson["allow"] = 0;
     websiteInfoJson["deny"] = 0;
     websiteInfoJson["scrub"] = 0;
