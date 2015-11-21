@@ -263,10 +263,47 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
         if(action == "scrub"){
           // scrub
+          var referer_header_index;
+          var referer_value;
+
+          // console.log('referer value');
+          // console.log(referer_value);
+
+          // console.log('info url');
+          // console.log(info.url);
+
+          //DecodeURI component twice to decode the url propoerly to contain '@' sign for email
+          info.url = decodeURIComponent(info.url);
+          info.url = decodeURIComponent(info.url);
+
+          // console.log('info url 1');
+          // console.log(info.url);
+
+          for (var i = 0; i < info.requestHeaders.length; ++i) {
+            if(info.requestHeaders[i].name == 'Referer'){
+              referer_value = decodeURIComponent(info.requestHeaders[i].value);
+              referer_header_index = i;  
+              break;
+            }
+          }
+
           for(var param in params) {
             var p = params[param];
             info.url = info.url.replace(p, 'xxxx');
+            if(referer_value != undefined)
+              referer_value = referer_value.replace(p, 'xxxx');
           }
+
+          // console.log('referer value 2');
+          // console.log(referer_value);
+
+          if(referer_value != undefined){
+            referer_value = encodeURIComponent(referer_value);
+            info.requestHeaders[referer_header_index].value = referer_value;  
+          }
+          
+          // info.url = encodeURIComponent(info.url);
+
           console.log(info);
         }
         else if(action == "deny"){
