@@ -121,14 +121,35 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     }else{
       return; 
     } 
+      
 
     var url_thirdparty = info.url;
     var url = getDomain(url_thirdparty);
-    
+
+    // console.log('url_thirdparty');
+    // console.log(url_thirdparty);
+
+    // console.log('domain');
+    // console.log(domain);
+
+    // console.log('third party domain');
+    // console.log(url);
+
+
     var parts = url.split('.');
     var subdomain = parts.shift();
     var sndleveldomain = parts.slice(-2).join('.');
 
+    // console.log('upperleveldomain');
+    // console.log(sndleveldomain);
+
+    // console.log('subdomain');
+    // console.log(subdomain);
+
+    // console.log('check');
+    // console.log(domain.indexOf(sndleveldomain));
+
+    // console.log(info);
 
     if(domain.indexOf(sndleveldomain) == -1){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
@@ -155,17 +176,25 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       }
 
 
+      // console.log('info.requestHeaders.length: ' + info.requestHeaders.length);
       for (var i = 0; i < info.requestHeaders.length; ++i) {
         //Check for cookie
         if (info.requestHeaders[i]!=undefined && info.requestHeaders[i]!=null && info.requestHeaders[i].name === 'Cookie') {
             //parse the cookie to get name value pairs
+            
+            // console.log("info.requestHeaders[i].value.length: " + info.requestHeaders[i].value.length);
             var cookie = info.requestHeaders[i].value.split(';');
+            
             // console.log("Inspecting cookies for possible PPI leak: ");
+              
+            // console.log(info.requestHeaders[i].value);
+
             // console.log(cookie);
+            // console.log('cookie.length: '+cookie.length);
             //var test = "name=komal; phone=3476226844; expires=Thu, 18 Dec 2013 12:00:00 UTC; path=/";
             //var cookie = test.split(';');
-            for(var i=0; i<cookie.length; i++) {
-                var p = cookie[i].split('=');
+            for(var j=0; j<cookie.length; j++) {
+                var p = cookie[j].split('=');
                 for(var property in user) {
                    if (user.hasOwnProperty(property)) {
                       if(p[1].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
@@ -380,12 +409,27 @@ function updateCrowdSourcingWebsiteInfo(url, action){
   var websiteRef = websiteInfoRef.child(url);
   var websiteSnapshot = global_snapshot.child(url);
   var websiteInfoJson = new Object();
+
+  console.log('websiteSnapshot');
+  console.log(websiteSnapshot);
+
+  console.log('url');
+  console.log(url);
+
   if(websiteSnapshot != null){
     var websiteData = websiteSnapshot.val();
+    
+    console.log('websiteData');
+    console.log(websiteData);
+
     websiteData[action] += 1;
     websiteRef.update(websiteData);
     } else{
     var websiteJson = new Object();
+    
+    console.log('websiteJson');
+    console.log(websiteJson);
+
     websiteInfoJson["allow"] = 0;
     websiteInfoJson["deny"] = 0;
     websiteInfoJson["scrub"] = 0;
