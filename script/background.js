@@ -113,22 +113,43 @@ function getMaliciousWebsiteStats(websiteName){
 }
 
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
+    console.log('info');
+    console.log(info);
+
+
+
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
     }
 
     var url_thirdparty = info.url;
+    var url = getDomain(url_thirdparty);
 
-    if(url_thirdparty.indexOf(domain) == -1){
+    console.log('url_thirdparty');
+    console.log(url_thirdparty);
+
+    console.log('domain');
+    console.log(domain);
+
+    console.log('third party domain');
+    console.log(url);
+
+
+    if(url.indexOf(domain) == -1){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
       //parse the URL using regex
-      var regex = /[?]([^&#=]+)=([^&#=]+)/g;
+      var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
       var found;
       var params = {};
 
+      console.log('sample url');
+      console.log(unescape(url_thirdparty));
+
       //Check if any query value of the URL matches one of the fields of PII provided by the user
       while(found=regex.exec(url_thirdparty)){
+          console.log('found');
+          console.log(found);
          for(var property in user){
             if (user.hasOwnProperty(property)) {
                if(found[2]==user[property]){ //value being leaked matches PII saved in database
@@ -169,19 +190,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         //Crowdsourcing
         var processedUrl = processURL(domain_thirdparty);
         var frequency_of_visit = getMaliciousWebsiteStats(processedUrl, leak, prev_action);
-        
-        if(frequencyOfAction == -1){
-          var majority = "This is a new found malicious website.";
-        } else{
-          var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
-        }
-        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
-
 
         console.log('frequency of visit');
         console.log(frequency_of_visit); 
-
-        var has_visited;
 
         //For all the PII values which are being leaked
         var leak = "Identified leak! The website " + domain + " is leaking your ";
@@ -192,25 +203,29 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         leak+= " to " ;
         leak+= domain_thirdparty;
         
+        if(frequencyOfAction == -1){
+          var majority = "This is a new found malicious website.";
+        } else{
+          var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
+        }
+        
+        // Check if the user visited the URL in the past
+        var is_visited = is_website_visited(domain_thirdparty);
+        var prev_action;
+
+        if(is_visited){
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');          
+          prev_action = 'True';
+        }else{
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
+          prev_action = 'False'; 
+        }
+          
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+
         console.log('leak');
         console.log(leak);
-
-
-        // Check if the user visited the URL in the past
-        has_visited = checkIfVisited(domain_thirdparty);
-        var prev_action = false;
-        if(has_visited!=null){
-          prev_action = true;
-          // console.log("You have visited " + domain_thirdparty + " and " + has_visited + " it.");
-        }
-
-        var is_visited = is_website_visited(domain_thirdparty);
-
-        if(is_visited)
-          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
-        else
-          console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
-
+        
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
 
         if(action == "1")
