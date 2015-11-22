@@ -25,6 +25,9 @@ $(document).ready(function(){
             if(google_id != ''){
                 userRef.orderByChild('email').equalTo(google_id).on('value', function(snapshot){
                     curr_user_info = snapshot.val();
+                    if(curr_user_info){
+                        show_history();
+                    }
                     show_form();
                 });
             }
@@ -48,4 +51,26 @@ function show_form(){
         document.getElementById('user-history').style.display = 'block';
     }
 
+}
+
+
+// User History
+
+function show_history(){
+    var message = "<h3>User information:</h3>";
+    userRef.orderByChild('email').equalTo(google_id).on('value', function(snapshot){
+        if(snapshot.val() != null){
+            snapshot.forEach(function(data){
+                var userData = data.val();
+                message += "<b>First Name:</b> " + userData.firstname + "<br>";
+                message += "<b>Last Name:</b> " + userData.lastname + "<br>";
+                message += "<b>Email:</b> " + userData.email + "<br>";
+                message += "<b>Year of Birth:</b> " + userData.year + "<br>";
+                message += "<b>Telephone Number:</b> " + userData.telephone + "<br>";
+                message += "<b>Address:</b> " + userData.address + "<br>";
+            });
+        }
+        document.getElementById('user-history').innerHTML = message;
+
+    });
 }

@@ -1,7 +1,7 @@
 // global variables
 var UserRefUrl = 'https://leaksentry.firebaseio.com/users';
 var userRef = new Firebase('https://leaksentry.firebaseio.com/users');
-var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo')
+var websiteInfoRef = new Firebase('https://leaksentry.firebaseio.com/websiteInfo');
 var user;
 var highestFreqAction;
 var frequencyOfAction = -1;
@@ -107,7 +107,9 @@ function getMaliciousWebsiteStats(websiteName){
       }
     });
   }
-
+  if(total == 0){
+    frequencyOfAction = 0;
+  }
   frequencyOfAction = ((frequencyOfAction * 100)/total).toFixed(2);
   return frequencyOfAction;
 }
@@ -286,6 +288,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       var params = {};
 
       //Check if any query value of the URL matches one of the fields of PII provided by the user
+
       // while(found=regex.exec(url_thirdparty)){
           
       //    for(var property in user){
@@ -297,7 +300,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       //    }
       // }
 
-
       // console.log('info.requestHeaders.length: ' + info.requestHeaders.length);
       for (var i = 0; i < info.requestHeaders.length; ++i) {
         //Check for cookie
@@ -306,7 +308,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             for(var j=0; j<cookie.length; j++) {
                 var p = cookie[j].split('=');
                 for(var property in user) {
-                   if (user.hasOwnProperty(property)  && typeof user[property] != 'undefined') {
+                   if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
                       if(p[1].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
                          params[p[0]] = p[1];
                       }
