@@ -20,35 +20,39 @@
     <!-- <script src="popup.js"></script> -->
   </head>
   <body>
-    <h3>LeakSentry</h3>
+    <div class = "title">LeakSentry</div>
     <div id = "sign-in">
-      <h5>Please log into your Google Account to use LeakSentry Chrome Extension.</h5>
+      <span>Please log into your Google Account to use LeakSentry Chrome Extension.</span>
     </div>
     <div class = "form-wrapper" >
       <form class = "user-info-form" id = "user-info-form">
-        <p>Please enter your PII to register with LeakSentry</p>
-        <label class = "user-info" for = "firstname">First Name</label>
-        <input class = "value" type = "text" name = "firstname" id = "firstname" required placeholder = "Enter first name" title = "firstname" /><br>
-        
-        <label class = "user-info" for = "lastname">Last Name</label>
-        <input class = "value" type = "text" name = "lastname" id = "lastname" required placeholder = "Enter last name" /><br>
-        
-        <label class = "user-info" for = "birth-year">Year of Birth</label>
-        <input class = "value" type = "number" name = "birth-year" id = "year" required placeholder = "Enter year of birth" /><br>
-        
-        <label class = "user-info" for = "email">Email</label>
-        <input class = "value" type = "email" name = "email" id = "email" required placeholder = "Enter a valid email address" /><br>
-        
-        <label class = "user-info" for = "address">Address</label>
-        <input class = "value" type = "text" name = "address" id = "address" required placeholder = "Enter physical address" /><br>
-        
-        <label class = "user-info" for = "telephone">Phone Number</label>
-        <input class = "value" type = "tel" name = "phone" id = "telephone" required placeholder = "Enter phone number" /><br>
-
-        <input type = 'submit' value = 'submit' class = 'submit-btn' id = 'save' />
+        <p class = "title-text">Please enter your PII to register with LeakSentry</p>
+        <div class = "form-body">  
+          <label class = "user-info" for = "firstname">First Name</label>
+          <input class = "value" type = "text" name = "firstname" id = "firstname" pattern = "(.*[^\s]+.*)+" required placeholder = "Enter first name" title = "firstname" /><br>
+          
+          <label class = "user-info" for = "lastname">Last Name</label>
+          <input class = "value" type = "text" name = "lastname" id = "lastname" pattern = "(.*[^\s]+.*)+" required placeholder = "Enter last name" /><br>
+          
+          <label class = "user-info" for = "birth-year">Year of Birth</label>
+          <input class = "value" type = "number" name = "birth-year" id = "year" required placeholder = "Enter year of birth" /><br>
+          
+          <label class = "user-info" for = "email">Email</label>
+          <input class = "value" type = "email" name = "email" id = "email" readonly /><br>
+          
+          <label class = "user-info" for = "address">Address</label>
+          <input class = "value" type = "text" name = "address" id = "address" required placeholder = "Enter physical address" /><br>
+          
+          <label class = "user-info" for = "telephone">Phone Number</label>
+          <input class = "value" type = "tel" name = "phone" id = "telephone" required placeholder = "Enter phone number" /><br>
+        </div>
+        <div class = "submit-form">  
+          <input type = 'submit' value = 'Submit' class = 'submit-btn' id = 'save' />
+        </div>  
       </form>
     </div>
-    <div id = "user-history">
-    </div>
+
+    <div id = "user-history"></div>
+
   </body>
 </html>

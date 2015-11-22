@@ -19,7 +19,7 @@ function submitDetails(){
 
 // On Popup click events
 $(document).ready(function(){
-
+    console.log('ready');
     chrome.identity.getProfileUserInfo(function(userInfo){
             google_id = userInfo.email;
             if(google_id != ''){
@@ -43,8 +43,10 @@ function show_form(){
     if(!google_id){
         document.getElementById('sign-in').style.display = 'block';
     } else if(!curr_user_info){
+        console.log(google_id);
         document.getElementById('sign-in').style.display = 'none';
         document.getElementById('user-info-form').style.display = 'block';
+        document.getElementById('email').value = google_id;
         document.getElementById('user-info-form').addEventListener('submit', submitDetails);
     } else{
         document.getElementById('user-info-form').style.display = 'none';

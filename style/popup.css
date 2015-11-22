@@ -1,7 +1,28 @@
 body {
-  font-family: "Arial", "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+  font-family: Palatino, 'Palatino Linotype', 'Palatino LT STD', 'Book Antiqua', Georgia, serif;
   font-size: 100%;
+  margin: 0;
+  background-color: rgba(128, 128, 128, 0.11);
 }
+
+.title{
+  font-weight: bold;
+  padding-top: 15px;
+  text-align: center;
+  height: 40px;
+  background-color: rgba(128, 128, 128, 0.29);
+  font-size: 21px;
+  letter-spacing: 1px;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.title-text{
+  
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+}
+
 
 .user-info-form{
   display:none;
@@ -9,25 +30,58 @@ body {
 }
 
 .form-wrapper{
-  width: 400px;
-  padding: 20px;
+  width: 420px;
+  /*padding: 10px 20px 20px 50px;*/
+  /*background-color: rgba(128, 128, 128, 0.11);*/
+}
+
+.form-body{
+  padding: 10px 20px 20px 50px;
 }
 
 .user-info{
   display: inline-block;
   width: 30%;
-  margin-right: 30px;
+  margin-right: 5px;
+  font-size: 15px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.69);
 }
 
 .value{
   height: 20px;
-  width: 60%
+  width: 50%;
+  border: 1px inset rgba(0, 0, 0, 0.17);
+  padding: 6px;
+  margin: 3px;
+  border: none;
+  border: 1px inset rgba(255, 0, 0, 0.55);  
 }
+
+.value:focus{
+  outline: 0;
+}
+
+.value:invalid{
+  border: 1px inset rgba(255, 0, 0, 0.55)
+}
+
+.value:valid{
+  border: 1px inset rgba(255, 0, 0, 0.55)
+}
+
 
 #user-history, #sign-in{
   display: none;
 }
 
+#save{
+  width: 100%;
+  border: none;
+  height: 50px;
+  font-size: 18px;
+  background-color: rgba(128, 128, 128, 0.29);
+}
 
 input:required:invalid, input:focus:invalid {
   background-image: url(/images/invalid.png);
