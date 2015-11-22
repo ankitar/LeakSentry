@@ -165,11 +165,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       // console.log(unescape(url_thirdparty));
 
       //Check if any query value of the URL matches one of the fields of PII provided by the user
+      console.log('url thiird party');
+      console.log(url_thirdparty);
       while(found=regex.exec(url_thirdparty)){
-          // console.log('found');
-          // console.log(found);
+          console.log('found');
+          console.log(found);
+          console.log('after found');
          for(var property in user){
-            if (user.hasOwnProperty(property)) {
+            if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
                if(found[2].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
                  params[found[1]] = found[2];
                }
@@ -198,7 +201,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             for(var j=0; j<cookie.length; j++) {
                 var p = cookie[j].split('=');
                 for(var property in user) {
-                   if (user.hasOwnProperty(property)) {
+                   if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
                       if(p[1].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
                          params[p[0]] = p[1];
                       }
@@ -217,7 +220,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             // console.log(referer);
             while(found=regex.exec(referer)){
                for(var property in user){
-                  if (user.hasOwnProperty(property)) {
+                  if (user.hasOwnProperty(property) &&  typeof user[property] !== 'undefined') {
                      if(found[2].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
                        params[found[1]] = found[2];
                      }
