@@ -7,11 +7,25 @@ var highestFreqAction;
 var frequencyOfAction = -1;
 var browsing_data;
 var global_snapshot;
+var global_user_snapshot;
+var user_loggedin;
+var user_email;
 
-//get snapshot
+//get website snapshot
 websiteInfoRef.on('value', function(snapshot){
   global_snapshot = snapshot;
 });
+
+//get user snapshot
+userRef.once('value', function(snapshot){
+  snapshot.forEach(function(childsnapshot){
+    if(user_email != undefined && user_email === childsnapshot.child('email').val()){
+      user_loggedin = true;
+    }    
+  });
+  global_user_snapshot = snapshot;
+});
+
 
 
 // define User object constructor
@@ -33,12 +47,17 @@ chrome.history.search({text: ''}, function(data){
 });
 
 // define current user
+chrome.identity.onSignInChanged.addListener(function (account, signedIn) {
+  user_loggedin = signedIn;
+});
 
 chrome.identity.getProfileUserInfo(function(userInfo){
     if(!userInfo.email){
         alert("Please log into your Google Account to use LeakSentry Chrome Extension.");
+        user_loggedin = false;
     }
     else{
+        user_email = userInfo.email;
         userRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
         if(snapshot.val() == null){
           alert("Please enter your PII for LeakSentry to work.");
@@ -117,124 +136,131 @@ function getMaliciousWebsiteStats(websiteName){
 
 // ON BEFORE REQUEST
 chrome.webRequest.onBeforeRequest.addListener(function(info){
-  console.log('on before request');
-  console.log(info);
+  if(user_loggedin)
+  {
 
-  if(taburl !== null && taburl !== undefined){
-     var domain = getDomain(taburl);
-  }else
-    return; 
-    
-  var url_thirdparty = info.url;
-  var url = getDomain(url_thirdparty);
+    console.log('on before request');
+    console.log(info);
 
-  var parts = url.split('.');
-  var subdomain = parts.shift();
-  var sndleveldomain = parts.slice(-2).join('.');
+    console.log('user logged in 1');
+    console.log(user_loggedin);
 
-  if(domain.indexOf(sndleveldomain) == -1){
-    
-    console.log("On before request Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
-    
-    //parse the URL using regex
-    var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
-    var found;
-    var params = {};
+    if(taburl !== null && taburl !== undefined){
+       var domain = getDomain(taburl);
+    }else
+      return; 
+      
+    var url_thirdparty = info.url;
+    var url = getDomain(url_thirdparty);
 
-    //Check if any query value of the URL matches one of the fields of PII provided by the user
-    while(found=regex.exec(url_thirdparty)){
-      // console.log('found');
-      // console.log(found);
-      for(var property in user){
-        if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
-          if(found[2].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
-            params[found[1]] = found[2];
+    var parts = url.split('.');
+    var subdomain = parts.shift();
+    var sndleveldomain = parts.slice(-2).join('.');
+
+    if(domain.indexOf(sndleveldomain) == -1){
+      
+      console.log("On before request Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
+      
+      //parse the URL using regex
+      var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
+      var found;
+      var params = {};
+
+      //Check if any query value of the URL matches one of the fields of PII provided by the user
+      while(found=regex.exec(url_thirdparty)){
+        // console.log('found');
+        // console.log(found);
+        for(var property in user){
+          if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
+            if(found[2].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
+              params[found[1]] = found[2];
+            }
           }
         }
       }
-    }
 
-    console.log('object');
-    console.log(Object.keys(params));
+      console.log('object');
+      console.log(Object.keys(params));
 
-    if(Object.keys(params).length>0){
-      console.log('request 2');
-      console.log(info);
-       
-      var domain_thirdparty = getDomain(url_thirdparty);
-        //Crowdsourcing
-      var processedUrl = processURL(domain_thirdparty);
-      var frequency_of_visit = getMaliciousWebsiteStats(processedUrl);
+      if(Object.keys(params).length>0){
+        console.log('request 2');
+        console.log(info);
+         
+        var domain_thirdparty = getDomain(url_thirdparty);
+          //Crowdsourcing
+        var processedUrl = processURL(domain_thirdparty);
+        var frequency_of_visit = getMaliciousWebsiteStats(processedUrl);
 
-        //For all the PII values which are being leaked
-      var leak = " >>>> Identified leak! \nThe website " + domain + " is leaking your ";
-      for(var param in params) {
-        var p = param + " - " + params[param] + "\n";
-        leak+=p;
-      }
-      
-      leak+= "to " ;
-      leak+= domain_thirdparty;
-      leak+="\n";
-      
-      if(frequencyOfAction == -1)
-        var majority = "This is a new found malicious website.";
-      else
-        var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
-      
-      // Check if the user visited the URL in the past
-      var is_visited = is_website_visited(domain_thirdparty);
-      var prev_action;
-
-      if(is_visited){
-        console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');          
-        prev_action = 'True';
-      }else{
-        console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
-        prev_action = 'False'; 
-      }
-          
-      var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
-
-      // console.log('leak');
-      // console.log(leak);
-      
-      var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
-
-      if(action == "1")
-        action = "allow";
-      else if(action == "2")
-        action = "deny";
-      else if(action == "3")
-        action ="scrub";
-      else
-        action = "allow"; //default behavior
-
-      updateUserWebsiteInfo(processedUrl, action);
-      updateCrowdSourcingWebsiteInfo(processedUrl, action);
-
-      if(action == "scrub"){
-        // scrub
-        //DecodeURI component twice to decode the url propoerly to contain '@' sign for email
-        info.url = decodeURIComponent(info.url);
-        info.url = decodeURIComponent(info.url);
-
+          //For all the PII values which are being leaked
+        var leak = " >>>> Identified leak! \nThe website " + domain + " is leaking your ";
         for(var param in params) {
-          var p = params[param];
-          info.url = info.url.replace(p, 'xxxx');
+          var p = param + " - " + params[param] + "\n";
+          leak+=p;
         }
         
-        // info.url = encodeURIComponent(info.url);
-        console.log(info);
-        return {redirectUrl: info.url};
-      }
-      else if(action == "deny"){
-        // block
-        console.log('block');
-        return {cancel:true};
+        leak+= "to " ;
+        leak+= domain_thirdparty;
+        leak+="\n";
+        
+        if(frequencyOfAction == -1)
+          var majority = "This is a new found malicious website.";
+        else
+          var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
+        
+        // Check if the user visited the URL in the past
+        var is_visited = is_website_visited(domain_thirdparty);
+        var prev_action;
+
+        if(is_visited){
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');          
+          prev_action = 'True';
+        }else{
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
+          prev_action = 'False'; 
+        }
+            
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
+
+        // console.log('leak');
+        // console.log(leak);
+        
+        var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
+
+        if(action == "1")
+          action = "allow";
+        else if(action == "2")
+          action = "deny";
+        else if(action == "3")
+          action ="scrub";
+        else
+          action = "allow"; //default behavior
+
+        updateUserWebsiteInfo(processedUrl, action);
+        updateCrowdSourcingWebsiteInfo(processedUrl, action);
+
+        if(action == "scrub"){
+          // scrub
+          //DecodeURI component twice to decode the url propoerly to contain '@' sign for email
+          info.url = decodeURIComponent(info.url);
+          info.url = decodeURIComponent(info.url);
+
+          for(var param in params) {
+            var p = params[param];
+            info.url = info.url.replace(p, 'xxxx');
+          }
+          
+          // info.url = encodeURIComponent(info.url);
+          console.log(info);
+          return {redirectUrl: info.url};
+        }
+        else if(action == "deny"){
+          // block
+          console.log('block');
+          return {cancel:true};
+        }
       }
     }
-  }  
+  }    
 },
 // filters
 {
@@ -250,6 +276,12 @@ var prev_request;
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     console.log('ON BEFORE SEND HEADERS');
     // console.log(info);    
+
+  if(user_loggedin){
+
+
+    console.log('user logged in 2');
+    console.log(user_loggedin);
 
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
@@ -447,7 +479,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
       }
     }
-    
+  }  
 },
 // filters
 {
