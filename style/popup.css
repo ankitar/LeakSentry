@@ -92,3 +92,17 @@ body {
   font-size: 18px;
   background-color: rgba(128, 128, 128, 0.29);
 }
+
+
+#sign-in{
+  height: 140px;
+  text-align: center;
+  padding: 15px;
+}
+
+.signin-text{
+  top: 40px;
+  position: relative;
+  font-size: 18px;
+  line-height: 30px;   
+}
