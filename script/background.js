@@ -23,7 +23,7 @@ userRef.once('value', function(snapshot){
   snapshot.forEach(function(childsnapshot){
     if(user_email != undefined && user_email === childsnapshot.child('email').val()){
       user_loggedin = true;
-    }    
+    }
   });
   global_user_snapshot = snapshot;
 });
@@ -148,8 +148,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
     }else
-      return; 
-      
+      return;
+
     var url_thirdparty = info.url;
     var url = getDomain(url_thirdparty);
 
@@ -158,9 +158,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
     var sndleveldomain = parts.slice(-2).join('.');
 
     if(domain.indexOf(sndleveldomain) == -1){
-      
+
       console.log("On before request Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
-      
+
       //parse the URL using regex
       var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
       var found;
@@ -177,41 +177,41 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
         }
       }
 
-      if(Object.keys(params).length>0){ 
+      if(Object.keys(params).length>0){
         var domain_thirdparty = getDomain(url_thirdparty);
           //Crowdsourcing
         var processedUrl = processURL(domain_thirdparty);
         var frequency_of_visit = getMaliciousWebsiteStats(processedUrl);
 
           //For all the PII values which are being leaked
-        var leak = " >>>> Identified leak! \nThe website " + domain + " is leaking your ";
+        var leak = "Detected PII leak! \n\nThe website " + domain + " is leaking your ";
         for(var param in params) {
           var p = param + " - " + params[param] + "\n";
           leak+=p;
         }
-        
+
         leak+= "to " ;
         leak+= domain_thirdparty;
         leak+="\n";
-        
+
         if(frequencyOfAction == -1)
           var majority = "This is a new found malicious website.";
         else
           var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
-        
+
         // Check if the user visited the URL in the past
         var is_visited = is_website_visited(domain_thirdparty);
         var prev_action;
 
         if(is_visited){
-          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');          
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
           prev_action = 'True';
         }else{
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
-          prev_action = 'False'; 
+          prev_action = 'False';
         }
-            
-        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n"; 
+
+        var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
 
         if(action == "1")
@@ -236,7 +236,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
             var p = params[param];
             info.url = info.url.replace(p, 'xxxx');
           }
-          
+
           return {redirectUrl: info.url};
         }
         else if(action == "deny"){
@@ -245,7 +245,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
         }
       }
     }
-  }    
+  }
 },
 // filters
 {
@@ -259,7 +259,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
 
 // ON BEFORE SEND HEADERS
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
-      
+
   if(user_loggedin){
 
     console.log('user logged in 2');
@@ -268,9 +268,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
     }else{
-      return; 
-    } 
-      
+      return;
+    }
+
     var url_thirdparty = info.url;
     var url = getDomain(url_thirdparty);
 
@@ -282,7 +282,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       console.log("Inspecting WebRequest to third party website " + url_thirdparty + " for possible PPI leak.");
 
       if(prev_request != undefined && prev_request.url == info.url && prev_request.type == info.type && prev_request.frameId != info.frameId){
-        
+
         return;
       }
 
@@ -333,7 +333,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         var frequency_of_visit = getMaliciousWebsiteStats(processedUrl);
 
         //For all the PII values which are being leaked
-        var leak = " >>>> Identified leak! \nThe website " + domain + " is leaking your ";
+        var leak = "Detected PII leak! \n\nThe website " + domain + " is leaking your ";
         for(var param in params) {
           var p = param + " - " + params[param] + "\n";
           leak+=p;
@@ -347,22 +347,22 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
         } else{
           var majority = frequencyOfAction + "% of users have choosen " + highestFreqAction + "." ;
         }
-        
+
         // Check if the user visited the URL in the past
         var is_visited = is_website_visited(domain_thirdparty);
         var prev_action;
 
         if(is_visited){
-          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');          
+          console.log('Third Party Website ' + domain_thirdparty + 'visited before: Yes');
           prev_action = 'True';
         }else{
           console.log('Third Party Website ' + domain_thirdparty + 'visited before: No');
-          prev_action = 'False'; 
+          prev_action = 'False';
         }
-          
+
         var message = leak + "\n" + "Visited Before: " + prev_action + "\n" + "Community: " + majority + "\n\n";
 
-                
+
         var action = prompt(message + "Enter 1 to allow, 2 to block and 3 to scrub", "3");
 
         if(action == "1")
@@ -390,7 +390,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
           for (var i = 0; i < info.requestHeaders.length; ++i) {
             if(info.requestHeaders[i].name == 'Referer'){
               referer_value = decodeURIComponent(info.requestHeaders[i].value);
-              referer_header_index = i;  
+              referer_header_index = i;
               break;
             }
           }
@@ -402,12 +402,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
               referer_value = referer_value.replace(p, 'xxxx');
           }
 
-      
+
           if(referer_value != undefined){
             referer_value = encodeURIComponent(referer_value);
-            info.requestHeaders[referer_header_index].value = referer_value;  
+            info.requestHeaders[referer_header_index].value = referer_value;
           }
-          
+
           // info.url = encodeURIComponent(info.url);
           console.log(info);
           return {requestHeaders: info.requestHeaders};
@@ -420,7 +420,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
       }
     }
-  }  
+  }
 },
 // filters
 {
