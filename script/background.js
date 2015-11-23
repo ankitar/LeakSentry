@@ -145,6 +145,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
   if(user_loggedin)
   {
 
+    // console.log('taburl');
+    // console.log(taburl);
+
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
     }else
@@ -264,6 +267,10 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
     console.log('user logged in 2');
     console.log(user_loggedin);
+
+    // console.log('taburl');
+    // console.log(taburl);
+
 
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
