@@ -54,25 +54,35 @@ body {
   border: 1px inset rgba(0, 0, 0, 0.17);
   padding: 6px;
   margin: 3px;
-  border: none;
-  border: 1px inset rgba(255, 0, 0, 0.55);  
 }
 
 .value:focus{
   outline: 0;
-}
-
-.value:invalid{
   border: 1px inset rgba(255, 0, 0, 0.55)
 }
 
 .value:valid{
-  border: 1px inset rgba(255, 0, 0, 0.55)
+  border: 1px inset rgba(0, 137, 255, 0.6);
 }
 
 
 #user-history, #sign-in{
   display: none;
+}
+
+#user-history{
+  height: 100px;
+  text-align: center;
+  margin-top: 40px;
+  line-height: 27px;
+}
+
+.msg-text{
+  font-size: 15px;
+}
+
+.msg-title{
+  font-size: 20px
 }
 
 #save{
@@ -81,15 +91,4 @@ body {
   height: 50px;
   font-size: 18px;
   background-color: rgba(128, 128, 128, 0.29);
-}
-
-input:required:invalid, input:focus:invalid {
-  background-image: url(/images/invalid.png);
-  background-position: right top;
-  background-repeat: no-repeat;
-}
-input:required:valid {
-  background-image: url(/images/valid.png);
-  background-position: right top;
-  background-repeat: no-repeat;
 }

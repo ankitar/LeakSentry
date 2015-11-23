@@ -59,17 +59,13 @@ function show_form(){
 // User History
 
 function show_history(){
-    var message = "<h3>User information:</h3>";
+    var message;
     userRef.orderByChild('email').equalTo(google_id).on('value', function(snapshot){
         if(snapshot.val() != null){
             snapshot.forEach(function(data){
                 var userData = data.val();
-                message += "<b>First Name:</b> " + userData.firstname + "<br>";
-                message += "<b>Last Name:</b> " + userData.lastname + "<br>";
-                message += "<b>Email:</b> " + userData.email + "<br>";
-                message += "<b>Year of Birth:</b> " + userData.year + "<br>";
-                message += "<b>Telephone Number:</b> " + userData.telephone + "<br>";
-                message += "<b>Address:</b> " + userData.address + "<br>";
+                message = "<div class = 'user-msg-wrapper'><span class = 'msg-title'><b>Hi! " + userData.firstname + ",<b></span><br><span class = 'msg-text'>LeakSentry is guarding you from PII thieves.</span></div>";
+
             });
         }
         document.getElementById('user-history').innerHTML = message;
