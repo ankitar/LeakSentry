@@ -12,6 +12,7 @@ var user_loggedin;
 var user_email;
 var taburl;
 var prev_request;
+var user_data;
 
 //get website snapshot
 websiteInfoRef.on('value', function(snapshot){
@@ -44,7 +45,7 @@ function User(email, website, firstName, lastName, telephone, year, address, id)
 
 // check browsing history
 chrome.history.search({text: ''}, function(data){
-  console.log('history');
+  // console.log('history');
   browsing_data = data;
 });
 
@@ -52,40 +53,93 @@ chrome.history.search({text: ''}, function(data){
 // define current user
 chrome.identity.onSignInChanged.addListener(function (account, signedIn) {
   user_loggedin = signedIn;
+  // console.log('accnt');
+  // console.log(account);
+  chrome.identity.getProfileUserInfo(function(userInfo){
+    // console.log('userinfo');
+    // console.log(userInfo);
+    user_data = userInfo;
+  });
 });
 
+
+userRef.on('value', get_user_info);
+
+function get_user_info(userInfo){
+  // console.log('get user info');
+  // console.log(user_data);
+  
+  if(user_data != undefined && (user_data.email != undefined || user_data.email != "")){
+    user_email = user_data.email;
+
+    userRef.orderByChild('email').equalTo(user_data.email).on('value', function(snapshot){
+      // console.log('snapshot val');  
+      // console.log(snapshot.val());  
+      if(snapshot.val() == null)
+        alert("Please enter your PII for LeakSentry to work.");
+      else{
+          // console.log(snapshot.val());
+          snapshot.forEach(function(data){
+              var userData = data.val();
+              var website;
+              if(userData.hasOwnProperty('website')){
+                  website = userData.website;
+              }
+              user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year, data.key());
+              // console.log('user value');
+              // console.log(user);
+        });
+      } 
+    });
+  }     
+}
 
 chrome.identity.getProfileUserInfo(function(userInfo){
-    if(!userInfo.email){
-        alert("Please log into your Google Account to use LeakSentry Chrome Extension. This email ID will be associated with your LeakSentry account.");
-        user_loggedin = false;
-    }
-    else{
-        user_email = userInfo.email;
-        userRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
-        // console.log('snapshot val');  
-        // console.log(snapshot.val());  
-        if(snapshot.val() == null){
-          alert("Please enter your PII for LeakSentry to work.");
-        } else{
-            // console.log(snapshot.val());
-            snapshot.forEach(function(data) {
-                var userData = data.val();
-                var website;
-                if(userData.hasOwnProperty('website')){
-                    website = userData.website;
-                }
-                user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year, data.key());
-          });
-        }
-      });
-    }
+  if(!userInfo.email)
+    alert("Please log into your Google Account to use LeakSentry Chrome Extension. This email ID will be associated with your LeakSentry account.");
+    user_loggedin = false;
 });
+
+// chrome.identity.getProfileUserInfo(function(userInfo){
+//     if(!userInfo.email){
+//         alert("Please log into your Google Account to use LeakSentry Chrome Extension. This email ID will be associated with your LeakSentry account.");
+//         user_loggedin = false;
+//     }
+//     else{
+//         user_email = userInfo.email;
+        
+//         console.log('email');
+//         console.log(user_email);
+
+
+//         userRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
+//         console.log('snapshot val');  
+//         console.log(snapshot.val());  
+//         if(snapshot.val() == null){
+//           alert("Please enter your PII for LeakSentry to work.");
+//         } else{
+//             // console.log(snapshot.val());
+//             snapshot.forEach(function(data) {
+//                 var userData = data.val();
+//                 var website;
+//                 if(userData.hasOwnProperty('website')){
+//                     website = userData.website;
+//                 }
+//                 user = new User(userData.email, website, userData.firstname, userData.lastname, userData.address, userData.telephone, userData.year, data.key());
+//                 console.log('user value');
+//                 console.log(user);
+//           });
+//         }
+//       });
+//     }
+// });
 
 
 chrome.tabs.onUpdated.addListener(function(tabID, changeInfo, tab){
       if(changeInfo.url !== undefined && changeInfo.url !== 'chrome://newtab/'){
         taburl = changeInfo.url;
+        // console.log('onUpdated');
+        // console.log(taburl);
       }
 });
 
@@ -96,6 +150,8 @@ chrome.tabs.onActivated.addListener(function(tab){
        function(tabs){
           if(tabs != undefined && tabs.length > 0 && tabs[0].url !== 'chrome://newtab/'){
              taburl = tabs[0].url;
+             // console.log('onActivated');
+             // console.log(taburl);
           }
        }
     );
@@ -108,6 +164,8 @@ chrome.tabs.onHighlighted.addListener(function(tab){
       function(tabs){
         if(tabs != undefined && tabs.length > 0 && tabs[0].url !== 'chrome://newtab/'){
           taburl = tabs[0].url;
+          // console.log('onHighlighted');
+          // console.log(taburl);
         }
       }
     );
@@ -185,7 +243,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
       }
 
       if(Object.keys(params).length>0){
-        // console.log('info 1');
+        console.log('info 1');
         // console.log(info);
         var domain_thirdparty = getDomain(url_thirdparty);
           //Crowdsourcing
@@ -349,7 +407,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
       if(Object.keys(params).length>0){
         // console.log(params);
-
+        console.log('info 2');
         prev_request = info;
 
         var domain_thirdparty = getDomain(url_thirdparty);
