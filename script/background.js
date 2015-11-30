@@ -56,8 +56,8 @@ chrome.identity.onSignInChanged.addListener(function (account, signedIn) {
   // console.log('accnt');
   // console.log(account);
   chrome.identity.getProfileUserInfo(function(userInfo){
-    // console.log('userinfo');
-    // console.log(userInfo);
+    console.log('userinfo');
+    console.log(userInfo);
     user_data = userInfo;
   });
 });
@@ -66,9 +66,9 @@ chrome.identity.onSignInChanged.addListener(function (account, signedIn) {
 userRef.on('value', get_user_info);
 
 function get_user_info(userInfo){
-  // console.log('get user info');
-  // console.log(user_data);
-  
+  console.log('get user info');
+  console.log(user_data);
+
   if(user_data != undefined && (user_data.email != undefined || user_data.email != "")){
     user_email = user_data.email;
 
@@ -202,13 +202,16 @@ function getMaliciousWebsiteStats(websiteName){
 
 // ON BEFORE REQUEST
 chrome.webRequest.onBeforeRequest.addListener(function(info){
+  console.log('user_loggedin');
+  console.log(user_loggedin); 
+
   if(user_loggedin)
   {
 
     // console.log('taburl');
     // console.log(taburl);
-    // console.log('user');
-    // console.log(user);
+    console.log('user');
+    console.log(user);
 
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
@@ -230,10 +233,14 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
       var regex = /[?|&]([^&#=]+)=([^&#=]+)/g;
       var found;
       var params = {};
-
+      console.log(user);
       //Check if any query value of the URL matches one of the fields of PII provided by the user
       while(found=regex.exec(url_thirdparty)){
         for(var property in user){
+          // console.log('property');
+          // console.log(property);
+          // console.log('found');
+          // console.log(found);
           if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
             if(found[2].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
               params[found[1]] = found[2];
@@ -241,6 +248,9 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
           }
         }
       }
+
+      console.log('info 11');
+      console.log(info);
 
       if(Object.keys(params).length>0){
         console.log('info 1');
@@ -331,6 +341,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
 
 // ON BEFORE SEND HEADERS
 chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
+  console.log('user_loggedin');
+  console.log(user_loggedin);
 
   if(user_loggedin){
 
@@ -339,8 +351,8 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
     // console.log('taburl');
     // console.log(taburl);
-    // console.log('user');
-    // console.log(user);
+    console.log('user');
+    console.log(user);
     
 
 
@@ -405,9 +417,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
          }
       }
 
+      console.log('info 21');
+      console.log(info);
+
       if(Object.keys(params).length>0){
         // console.log(params);
-        console.log('info 2');
+        console.log('info 22');
         prev_request = info;
 
         var domain_thirdparty = getDomain(url_thirdparty);
