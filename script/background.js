@@ -63,10 +63,12 @@ chrome.identity.getProfileUserInfo(function(userInfo){
     else{
         user_email = userInfo.email;
         userRef.orderByChild('email').equalTo(userInfo.email).on('value', function(snapshot){
+        // console.log('snapshot val');  
+        // console.log(snapshot.val());  
         if(snapshot.val() == null){
           alert("Please enter your PII for LeakSentry to work.");
         } else{
-            console.log(snapshot.val());
+            // console.log(snapshot.val());
             snapshot.forEach(function(data) {
                 var userData = data.val();
                 var website;
@@ -147,6 +149,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
 
     // console.log('taburl');
     // console.log(taburl);
+    // console.log('user');
+    // console.log(user);
 
     if(taburl !== null && taburl !== undefined){
        var domain = getDomain(taburl);
@@ -181,6 +185,8 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
       }
 
       if(Object.keys(params).length>0){
+        // console.log('info 1');
+        // console.log(info);
         var domain_thirdparty = getDomain(url_thirdparty);
           //Crowdsourcing
         var processedUrl = processURL(domain_thirdparty);
@@ -240,10 +246,15 @@ chrome.webRequest.onBeforeRequest.addListener(function(info){
             info.url = info.url.replace(p, 'xxxx');
           }
 
+          console.log('scrub url');
+          console.log(info);
+
           return {redirectUrl: info.url};
         }
         else if(action == "deny"){
           // block
+          console.log('block url');
+          console.log(info);
           return {cancel:true};
         }
       }
@@ -265,11 +276,14 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 
   if(user_loggedin){
 
-    console.log('user logged in 2');
-    console.log(user_loggedin);
+    // console.log('user logged in 2');
+    // console.log(user_loggedin);
 
     // console.log('taburl');
     // console.log(taburl);
+    // console.log('user');
+    // console.log(user);
+    
 
 
     if(taburl !== null && taburl !== undefined){
@@ -305,7 +319,11 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             for(var j=0; j<cookie.length; j++) {
                 var p = cookie[j].split('=');
                 for(var property in user) {
+                  // console.log('property');
+
                    if (user.hasOwnProperty(property) && typeof user[property] != 'undefined') {
+                      // console.log(user[property].toString().toLowerCase());
+                      // console.log(p[1].toString().toLowerCase());
                       if(p[1].toString().toLowerCase()==user[property].toString().toLowerCase()){ //value being leaked matches PII saved in database
                          params[p[0]] = p[1];
                       }
@@ -330,6 +348,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
       }
 
       if(Object.keys(params).length>0){
+        // console.log(params);
 
         prev_request = info;
 
@@ -389,16 +408,33 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
           var referer_header_index;
           var referer_value;
 
+          var cookie_header_index;
+          var cookie_value;
+
 
           //DecodeURI component twice to decode the url propoerly to contain '@' sign for email
           info.url = decodeURIComponent(info.url);
           info.url = decodeURIComponent(info.url);
 
           for (var i = 0; i < info.requestHeaders.length; ++i) {
+            // console.log('hdr name');
+            // console.log(info.requestHeaders[i].name);
+            // console.log(info.requestHeaders[i].value);
+
+
             if(info.requestHeaders[i].name == 'Referer'){
               referer_value = decodeURIComponent(info.requestHeaders[i].value);
               referer_header_index = i;
-              break;
+              // break;
+            }
+
+
+            if(info.requestHeaders[i].name == 'Cookie'){
+              cookie_value = info.requestHeaders[i].value;
+              cookie_header_index = i;
+              // console.log('cookie_value' + cookie_header_index);
+              // console.log(cookie_value);
+              // break;
             }
           }
 
@@ -407,6 +443,11 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             info.url = info.url.replace(p, 'xxxx');
             if(referer_value != undefined)
               referer_value = referer_value.replace(p, 'xxxx');
+            if(cookie_value != undefined){
+              // console.log('replace');
+              cookie_value = cookie_value.replace(p, 'xxxx');              
+            }
+              
           }
 
 
@@ -415,13 +456,23 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
             info.requestHeaders[referer_header_index].value = referer_value;
           }
 
+          if(cookie_value != undefined){
+            info.requestHeaders[cookie_header_index].value = cookie_value;
+          }
+
+
+
+
           // info.url = encodeURIComponent(info.url);
+          console.log('scrub header');
           console.log(info);
           return {requestHeaders: info.requestHeaders};
         }
         else if(action == "deny"){
           // block
-          console.log('block');
+          // console.log('block');
+          console.log('block header');
+          console.log(info);
           return {cancel:true};
         }
 
@@ -442,7 +493,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function(info){
 function is_website_visited(website){
   var url;
   website = website.toLowerCase();
-
   for(var key in browsing_data){
    var obj = browsing_data[key];
    url = getDomain(obj.url);
